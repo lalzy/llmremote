@@ -8,7 +8,7 @@ using LLMRemote.Data;
 
 namespace LLMRemote.Tests.Util;
 
-public static class Controllers{
+public static class ControllersUtil{
     public static (WebApplicationFactory<Program>, HttpClient) Setup(WebApplicationFactory<Program> factory){
         var connection = new SqliteConnection("Data Source=:memory:");
         connection.Open();

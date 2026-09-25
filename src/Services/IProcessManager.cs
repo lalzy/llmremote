@@ -16,7 +16,9 @@ public class ManagedProcess : IManagedProcess{
     public bool HasExited => _process == null || _process.HasExited;
 
     public void Start(string fileName, string arguments){
-        _process = Process.Start(new ProcessStartInfo(fileName, arguments));
+        _process = Process.Start(new ProcessStartInfo(fileName, arguments){
+           UseShellExecute = true     
+        });
     }
 
     public void Stop(){

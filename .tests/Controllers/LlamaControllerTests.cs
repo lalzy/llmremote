@@ -16,7 +16,7 @@ public class LlamaControllerTests : IClassFixture<WebApplicationFactory<Program>
     private readonly WebApplicationFactory<Program> _factory;
 
     public LlamaControllerTests(WebApplicationFactory<Program> factory){
-        (_factory, _client) = Controllers.Setup(factory);
+        (_factory, _client) = ControllersUtil.Setup(factory);
     }
 
     [Fact]

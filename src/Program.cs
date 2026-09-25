@@ -2,10 +2,14 @@ using Microsoft.EntityFrameworkCore;
 using LLMRemote.Data;
 using LLMRemote.Services;
 using LLMRemote.Extensions;
+using LLMRemote.Options;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite("Data source=models.db"));
+
+builder.Services.Configure<Apps>(builder.Configuration.GetSection("Apps"));
 
 builder.Services.AddServices();
 builder.Services.AddTransient<IManagedProcess, ManagedProcess>();
@@ -26,6 +30,7 @@ var app = builder.Build();
 
 app.UseStaticFiles();
 app.UseRouting();
+app.MapControllers();
 app.MapRazorPages();
 
 app.Run();
