@@ -34,6 +34,7 @@ Run tests with ```dotnet test```
 ```
 src/
   ..Controllers/ - API Endpoints
+  ..Data/ - Database Definition
   ..Models/ - Data Models
   ..Services/ - Business Logic
   ..Views/ - Razor Pages
