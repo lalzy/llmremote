@@ -6,17 +6,17 @@ using Bogus;
 
 namespace LLMRemote.Tests.Services;
 
-public class LlamaServiceTests : DatabaseTestBase{
+public class LlamaServiceTests{
     private readonly LlamaService _service;
     private readonly FakeProcess _process = new();
     private readonly Faker _faker = new Faker();
     
-    public LlamaServiceTests(DatabaseFixture fixture) : base(fixture){
+    public LlamaServiceTests(){
         var apps = new OptionsWrapper<Apps>(new Apps {
             Llama = new AppConfig { Path = _faker.System.FilePath(), Port = _faker.Internet.Port() }
         });
         
-        _service = new LlamaService(fixture.CreateContext(), _process, apps);
+        _service = new LlamaService( _process, apps);
     }
 
     [Fact]

@@ -1,11 +1,9 @@
 // LLamaService.cs
 using Microsoft.Extensions.Options;
-using LLMRemote.Data;
 using LLMRemote.Options;
 namespace LLMRemote.Services;
 
-public class LlamaService(AppDbContext db, IManagedProcess process, IOptions<Apps> apps){
-    private readonly AppDbContext _db = db;
+public class LlamaService(IManagedProcess process, IOptions<Apps> apps){
     private readonly IManagedProcess _process = process;
     private readonly AppConfig _llamaConfig = apps.Value.Llama;
 
