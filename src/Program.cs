@@ -8,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite("Data source=models.db"));
 
 builder.Services.AddServices();
+builder.Services.AddTransient<IManagedProcess, ManagedProcess>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c=>{
