@@ -1,9 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using LLMRemote.Data;
+using LLMRemote.Services;
+using LLMRemote.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite("Data source=models.db"));
+
+builder.Services.AddServices();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c=>{
@@ -12,7 +16,6 @@ builder.Services.AddSwaggerGen(c=>{
             Version = "v1"
         });
 });
-
 
 builder.Services.AddControllersWithViews();
 
