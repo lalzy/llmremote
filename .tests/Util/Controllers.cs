@@ -26,8 +26,12 @@ public static class ControllersUtil{
                 if (descriptor != null) services.Remove(descriptor);
 
                 services.AddDbContext<AppDbContext>(options => options.UseSqlite(connection));
-                services.RemoveAll<IManagedProcess>();
-                services.AddTransient(_ => new Mock<IManagedProcess>().Object);
+                
+                // Replace the keyed process services
+                foreach (var key in new[] { "llama", "comfyui"}){
+                    services.RemoveAllKeyed<IManagedProcess>(key);
+                    services.AddKeyedTransient<IManagedProcess>(key, (_, _) => new Mock<IManagedProcess>().Object);
+                }
             });
         });
         
