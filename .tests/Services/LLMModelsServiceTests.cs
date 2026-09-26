@@ -142,6 +142,11 @@ public class LLMModelsServiceTests : DatabaseTestBase{
             _ => throw new ArgumentOutOfRangeException(nameof(orderBy))
         };
 
+        // Case insensitivity same as service
+        IComparer<object> comparer = orderBy == LLMModelsService.OrderBy.Name
+            ? Comparer<object>.Create((a, b) => StringComparer.OrdinalIgnoreCase.Compare((string)a, (string)b))
+            : Comparer<object>.Default;
+        
         Assert.Equal(models.Select(key).OrderBy(k => k), fetched.Select(key));
     }
 

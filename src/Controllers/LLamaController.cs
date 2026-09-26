@@ -2,6 +2,7 @@
 
 using Microsoft.AspNetCore.Mvc;
 using LLMRemote.Services;
+using LLMRemote.Models;
 
 namespace LLMRemote.Controllers;
 
@@ -10,9 +11,9 @@ namespace LLMRemote.Controllers;
 public class LlamaController(LlamaService service) : ControllerBase{
     private readonly LlamaService _service = service;
     
-    [HttpPost("start/{modelID:guid}")]
-    public IActionResult Start(Guid modelID){
-        _service.StartServer(modelID);
+    [HttpPost("start")]
+    public IActionResult Start([FromBody] LLMModel model){
+        _service.StartServer(model);
         return Ok();
     }
 

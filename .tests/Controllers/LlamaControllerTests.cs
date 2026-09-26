@@ -3,6 +3,7 @@
 using Microsoft.AspNetCore.Mvc.Testing;
 using System.Net;
 using Bogus;
+using System.Net.Http.Json;
 using LLMRemote.Tests.Util;
 
 namespace LLMRemote.Tests;
@@ -19,7 +20,7 @@ public class LlamaControllerTests : IClassFixture<WebApplicationFactory<Program>
     [Fact]
     public async Task StartServer_Ok(){
         var model = ControllersUtil.CreateLLMModel(_factory);
-        var response = await _client.PostAsync($"/api/llama/start/{model.ID}", null);
+        var response = await _client.PostAsJsonAsync($"/api/llama/start", model); 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 

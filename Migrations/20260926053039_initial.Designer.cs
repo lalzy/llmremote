@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace llmremote.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260926004205_Initial")]
-    partial class Initial
+    [Migration("20260926053039_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
