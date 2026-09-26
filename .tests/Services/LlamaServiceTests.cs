@@ -16,7 +16,7 @@ public class LlamaServiceTests : DatabaseTestBase{
     
     public LlamaServiceTests(DatabaseFixture fixture) : base (fixture){
         var apps = new OptionsWrapper<Apps>(new Apps {
-            Llama = new AppConfig { Path = _faker.System.FilePath(), Port = _faker.Internet.Port() }
+                Llama = new LlamaConfig { Path = _faker.System.FilePath(), Port = _faker.Internet.Port(), OtherSettings ="" }
         });
 
         _service = new LlamaService(_process, apps);

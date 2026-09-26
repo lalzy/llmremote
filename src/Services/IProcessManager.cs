@@ -1,10 +1,11 @@
 // IProcessManager.cs
 
 using System.Diagnostics;
+using LLMRemote.Util;
 
 namespace LLMRemote.Services;
 
-public interface IManagedProcess{
+public interface IManagedProcess : IDisposable{
     bool HasExited { get; }
     void Start(string filename, string arguments);
     void Stop();
@@ -19,6 +20,7 @@ public class ManagedProcess : IManagedProcess{
         _process = Process.Start(new ProcessStartInfo(fileName, arguments){
            UseShellExecute = true     
         });
+        if (_process != null) JobObject.Assign(_process);
     }
 
     public void Stop(){
@@ -27,5 +29,9 @@ public class ManagedProcess : IManagedProcess{
             _process.WaitForExit();
         }
         _process = null;
+    }
+
+    public void Dispose(){
+        Stop();
     }
 }
