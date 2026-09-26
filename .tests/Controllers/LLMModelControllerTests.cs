@@ -122,7 +122,7 @@ public class LLMModelControllerTests : IClassFixture<WebApplicationFactory<Progr
     public async Task Update_Ok(){
         var model = ControllersUtil.CreateLLMModel(_factory);
         
-        var response = await _client.PatchAsJsonAsync($"{URL}/{model.ID}",
+        var response = await _client.PutAsJsonAsync($"{URL}/{model.ID}",
                               new AutoFaker<LLMModelRequest>()
                                     .RuleFor(r => r.Context, f => f.Random.Int(1, int.MaxValue))
                                     .Generate());

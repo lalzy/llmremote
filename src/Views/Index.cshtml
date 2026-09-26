@@ -2,6 +2,53 @@
 
 <link rel="stylesheet" href="~/css/site.css" />
 
-<button id="test-btn">Click me</button>
+<body>
+    <div class="main">
+	<!-- Llama -->
+	<div class="service-row">
+	    <p id="llamasatus" class="server-status offline">Llama: Checking...</p>
+	</div>
 
-<script src="~/js/site.js"></script>
+	<!-- Models -->
+	<button id="addModel" class="button-main">Add Model</button>
+	<ul id="modelList"></ul>
+	<p id="emptyText"hidden>No models Yet</p>
+    </div>
+
+    <!-- Add/Edit modal -->
+    <dialog id="modalDialog">
+	<form id="modelForm">
+	    <h2 id="modelDialogTitle">Add Model</h2>
+	    <label>
+		Name
+		<input id="nameInput" required>
+	    </label>
+	    <label>
+		File Path
+		<input id="filePathInput" required>
+	    </label>
+	    <label>
+		Context Size
+		<input id="contextInput" type="number" min="1" placeholder="model default">
+	    </label>
+
+	    <p id="formError" class="error"></p>
+	    
+	    <div class="actions">
+		<button type="button" class="cancel-button">Cancel</button>
+		<button type="submit" class="main-Button">Save</button>
+	    </div>
+	</form>
+    </dialog>
+
+    <!-- Confirm Delete modal -->
+    <dialog id="deleteDialog">
+	<h2>Delete model</h2>
+	<p>Are you sure you want to delete <strong id="deleteName"></strong>?</p>
+	<div class="actions">
+	    <button type="button" class="cancel-button">Cancel></button>
+	    <button type="button" id="confirm-button" class="danger-button">Confirm</button>
+	</div>
+    </dialog>
+</body>
+<script src="~/js/site.js" asp-append-version="true"></script>
