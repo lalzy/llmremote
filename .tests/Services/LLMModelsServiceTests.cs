@@ -147,7 +147,12 @@ public class LLMModelsServiceTests : DatabaseTestBase{
             ? Comparer<object>.Create((a, b) => StringComparer.OrdinalIgnoreCase.Compare((string)a, (string)b))
             : Comparer<object>.Default;
         
-        Assert.Equal(models.Select(key).OrderBy(k => k), fetched.Select(key));
+        var expected = models
+            .OrderBy(key, comparer)
+            .ThenBy(m => m.ID)
+            .Select(m => m.ID);
+
+        Assert.Equal(expected, fetched.Select(m => m.ID));
     }
 
     [Fact]

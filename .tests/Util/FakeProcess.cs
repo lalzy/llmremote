@@ -1,10 +1,12 @@
 // FakeProcess.cs
 
+using System;
 using LLMRemote.Services;
 
 namespace LLMRemote.Tests.Util;
 
-public class FakeProcess : IManagedProcess{
+public class FakeProcess : IManagedProcess
+{
     public int StartCount { get; private set; }
     public int StopCount { get; private set; }
     public bool HasExited { get; private set; } = true;
@@ -15,9 +17,14 @@ public class FakeProcess : IManagedProcess{
         HasExited = false;
     }
 
-    public void Stop(){
+    public void Stop()
+    {
         StopCount++;
         HasExited = true;
     }
-    
+
+    public void Dispose()
+    {
+        // Nothing to clean up in a fake.
+    }
 }

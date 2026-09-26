@@ -1,6 +1,8 @@
 // IProcessManager.cs
 
+using System;
 using System.Diagnostics;
+using System.ComponentModel;
 using LLMRemote.Util;
 
 namespace LLMRemote.Services;
@@ -24,11 +26,21 @@ public class ManagedProcess : IManagedProcess{
     }
 
     public void Stop(){
-        if(!HasExited){
-            _process!.Kill(entireProcessTree: true);
-            _process.WaitForExit();
+        if(_process == null) return;
+        try{
+            if(!HasExited){
+                _process!.Kill(entireProcessTree: true);
+                _process.WaitForExit();
+            }
+            
+        }catch (InvalidOperationException){
+            // Do nothing
+        }catch (Win32Exception){
+            // Do nothing
+        }finally{
+            _process.Dispose();
+            _process = null;
         }
-        _process = null;
     }
 
     public void Dispose(){

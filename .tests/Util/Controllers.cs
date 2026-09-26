@@ -11,6 +11,8 @@ using LLMRemote.Services;
 using LLMRemote.Data;
 using LLMRemote.Models;
 using LLMRemote.Tests.Factories;
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Hosting;
 
 namespace LLMRemote.Tests.Util;
 
@@ -20,6 +22,7 @@ public static class ControllersUtil{
         connection.Open();
 
         var retFactory = factory.WithWebHostBuilder(builder => {
+            builder.ConfigureLogging(l => { l.ClearProviders(); l.AddConsole(); });
             builder.ConfigureServices(services =>
             {
                 var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));

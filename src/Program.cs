@@ -39,11 +39,6 @@ app.UseRouting();
 app.MapControllers();
 app.MapRazorPages();
 
-// Stop the servers (llama, comyui, etc) on this app's close 
-app.Lifetime.ApplicationStopped.Register(() => {
-    foreach(var process in app.Services.GetKeyedServices<IManagedProcess>(KeyedService.AnyKey)){
-        process.Stop();
-    }
-});
+
 
 app.Run();
