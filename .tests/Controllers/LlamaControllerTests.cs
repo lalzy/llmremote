@@ -1,11 +1,8 @@
-// LLamaControllerTests.csdef
+// LLamaControllerTests.cs
 
 using Microsoft.AspNetCore.Mvc.Testing;
-using System.Text.Json;
 using System.Net;
 using Bogus;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore;
 using LLMRemote.Tests.Util;
 
 namespace LLMRemote.Tests;
@@ -21,13 +18,14 @@ public class LlamaControllerTests : IClassFixture<WebApplicationFactory<Program>
 
     [Fact]
     public async Task StartServer_Ok(){
-        var response = await _client.GetAsync("/api/llama/start");
+        var model = ControllersUtil.CreateLLMModel(_factory);
+        var response = await _client.PostAsync($"/api/llama/start/{model.ID}", null);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]
     public async Task StopServer_Ok(){
-        var response = await _client.GetAsync("/api/llama/stop");
+        var response = await _client.PostAsync("/api/llama/stop/", null);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 }

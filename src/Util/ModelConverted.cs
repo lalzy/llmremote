@@ -6,7 +6,7 @@ public static class ModelConverter{
     ///<summary>Load up models automatically</summary>
     ///<returns>A new <typeparamref name="T"/>with mapped properties</returns>
     public static T ConvertModelToDTO<T>(this object source){
-        var target = (T)System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(typeof(T));
+        var target = Activator.CreateInstance<T>();
         var sourceProps = source.GetType().GetProperties();
         var targetProps = typeof(T).GetProperties();
 

@@ -21,6 +21,7 @@ public class LLMModelsService(AppDbContext db){
 
     public LLMModel Get(Guid ID){
         var model = _db.LLMModel.FirstOrDefault(m => m.ID == ID);
+        if(model == null) throw new KeyNotFoundException("Model not found");
         return model;
     }
 
@@ -42,9 +43,15 @@ public class LLMModelsService(AppDbContext db){
         return request.Skip((page - 1) * count).Take(count).ToList();
     }
     
-    public LLMModel Edit(LLMModelRequest request){
+    public LLMModel Update(Guid id, LLMModelRequest request){
         LLMModel model = request.ConvertModelToDTO<LLMModel>();
+        model.ID = id;
         _db.LLMModel.Update(model);
+        _db.SaveChanges();
         return model;
+    }
+
+    public void Delete(Guid id){
+        _db.LLMModel.Where(m => m.ID == id).ExecuteDelete();
     }
 }

@@ -2,6 +2,9 @@
 
 using Bogus;
 using AutoBogus;
+using System.Reflection;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.Sqlite;
 using System.Linq;
 using LLMRemote.Tests.Util;
 using LLMRemote.Services;
@@ -45,6 +48,15 @@ public class LLMModelsServiceTests : DatabaseTestBase{
     }
 
     [Fact]
+    public void AddModel_CreatedAtSet(){
+        var before = DateTime.UtcNow;
+        var model = _service.Add(AutoFaker.Generate<LLMModelRequest>());
+        var after = DateTime.UtcNow;
+
+        Assert.InRange(model.CreatedAt, before, after);
+    }
+
+    [Fact]
     public void GetModel_ReturnsModel(){
         var expected = LLMModelFactory.Create(_fixture.CreateContext());
 
@@ -62,6 +74,11 @@ public class LLMModelsServiceTests : DatabaseTestBase{
 
             Assert.Equivalent(expected, model);
         }
+    }
+
+    [Fact]
+    public void GetModel_DoesNotExistThrows(){
+        Assert.Throws<KeyNotFoundException>(() => _service.Get(_faker.Random.Guid()));
     }
 
     [Theory]
@@ -126,5 +143,83 @@ public class LLMModelsServiceTests : DatabaseTestBase{
         };
 
         Assert.Equal(models.Select(key).OrderBy(k => k), fetched.Select(key));
+    }
+
+    [Fact]
+    public void Update_ReturnsModel(){
+        var model = LLMModelFactory.Create(_fixture.CreateContext());
+        var request = AutoFaker.Generate<LLMModelRequest>();
+        
+        var fetched = _service.Update(model.ID, request);
+
+        Assert.Equivalent(request, fetched);
+    }
+
+    private LLMModelRequest CreateRequestFromModel(LLMModel model){
+        return new LLMModelRequest{
+            Name = model.Name,
+            FilePath = model.FilePath,
+            Context = model.Context,
+        };
+    }
+
+    [Theory]
+    [InlineData(nameof(LLMModelRequest.Name))]
+    [InlineData(nameof(LLMModelRequest.FilePath))]
+    [InlineData(nameof(LLMModelRequest.Context))]
+    public void Update_OnlySelectedFieldIsChanged(string propertyName){
+        var model = LLMModelFactory.Create(_fixture.CreateContext());
+
+        var request = CreateRequestFromModel(model);
+
+        // change property value to new random
+        PropertyInfo property = typeof(LLMModelRequest).GetProperty(propertyName)!;
+        Type type = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+        object value = type switch{
+            _ when type == typeof(string) => _faker.Random.String2(10),
+            _ when type == typeof(int) => _faker.Random.Int(1, int.MaxValue),
+            _ => throw new NotSupportedException(type.Name)
+        };
+
+        property.SetValue(request, value);
+
+        _service.Update(model.ID, request);
+        var dbFetch = _fixture.CreateContext().LLMModel.FirstOrDefault(m => m.ID == model.ID);
+        
+        Assert.Equivalent(request, dbFetch);
+    }
+    
+    [Fact]
+    public void UpdateModel_UpdatedAtSet(){
+        var model = LLMModelFactory.Create(_fixture.CreateContext());
+        
+        var before = DateTime.UtcNow;
+        var fetched = _service.Update(model.ID,  CreateRequestFromModel(model));
+        var after = DateTime.UtcNow;
+
+        Assert.InRange(fetched.UpdatedAt, before, after);
+    }
+
+    [Fact]
+    public void UpdateModel_DoesNotChangeCreatedAt(){
+        var model = LLMModelFactory.Create(_fixture.CreateContext());
+        _service.Update(model.ID, CreateRequestFromModel(model));
+
+        var fetched = _fixture.CreateContext().LLMModel.FirstOrDefault(m => m.ID == model.ID);
+        Assert.Equal(model.CreatedAt, fetched.CreatedAt);
+    }
+    
+    [Fact]
+    public void UpdateModel_ThrowsOnNotFound(){
+        Assert.Throws<DbUpdateConcurrencyException>(() => _service.Update(_faker.Random.Guid(), AutoFaker.Generate<LLMModelRequest>()));
+    }
+
+    [Fact]
+    public void DeleteModel_Success(){
+        var model = LLMModelFactory.Create(_fixture.CreateContext());
+        _service.Delete(model.ID);
+
+        var dbFetch = _fixture.CreateContext().LLMModel.FirstOrDefault(m => m.ID == model.ID);
+        Assert.Null(dbFetch);
     }
 }

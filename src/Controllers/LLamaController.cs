@@ -15,4 +15,10 @@ public class LlamaController(LlamaService service) : ControllerBase{
         _service.StartServer(modelID);
         return Ok();
     }
+
+    [HttpPost("stop")]
+    public IActionResult Stop(){
+        _service.StopServer();
+        return Ok();
+    }
 }

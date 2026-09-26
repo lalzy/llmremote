@@ -10,7 +10,9 @@ namespace LLMRemote.Tests.Factories;
 public class LLMModelFactory{
     public static LLMModel Create(AppDbContext db){
         var model = AutoFaker.Generate<LLMModel>();
-
+        model.CreatedAt = DateTime.UtcNow;
+        model.UpdatedAt = DateTime.UtcNow;
+        
         db.LLMModel.Add(model);
         db.SaveChanges();
         return model;

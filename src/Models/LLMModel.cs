@@ -8,8 +8,8 @@ public class LLMModel{
     public string Name { get; set; } = "";
     public string FilePath { get; set; } = "";
     public int? Context { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
-    public DateTime UpdatedAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
 
 public class LLMModelRequest{
