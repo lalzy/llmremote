@@ -29,7 +29,7 @@ public class LLMModelsService(AppDbContext db){
         Name, Created, Updated, ID
     }
     
-    public List<LLMModel> GetAll(int page=1, int count=1, OrderBy orderBy=OrderBy.Name){
+    public List<LLMModel> GetAll(int page=1, int count=10, OrderBy orderBy=OrderBy.Name){
         var request = _db.LLMModel.AsNoTracking();
 
         request = orderBy switch
