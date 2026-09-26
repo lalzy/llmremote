@@ -3,12 +3,14 @@
 using Microsoft.AspNetCore.Mvc.Testing;
 using System.Net;
 using Microsoft.Extensions.DependencyInjection;
+using System.ComponentModel.DataAnnotations;
 using Bogus;
 using AutoBogus;
 using LLMRemote.Tests.Util;
 using LLMRemote.Models;
 using System.Net.Http.Json;
 using LLMRemote.Services;
+using LLMRemote.Data;
 
 namespace LLMRemote.Tests;
 
@@ -114,5 +116,50 @@ public class LLMModelControllerTests : IClassFixture<WebApplicationFactory<Progr
     public async Task GetAll_InvalidParams_BadRequest(int page, int count, LLMModelsService.OrderBy orderBy){
         var response = await _client.GetAsync($"{URL}/all?page={page}&count={count}&orderBy={orderBy}");
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Update_Ok(){
+        var model = ControllersUtil.CreateLLMModel(_factory);
+        
+        var response = await _client.PatchAsJsonAsync($"{URL}/{model.ID}",
+                              new AutoFaker<LLMModelRequest>()
+                                    .RuleFor(r => r.Context, f => f.Random.Int(1, int.MaxValue))
+                                    .Generate());
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    public static TheoryData<LLMModelRequest> InvalidUpdateRequest => new(){
+        new LLMModelRequest{ FilePath = "somePath", Context = 1},
+        new LLMModelRequest{Name = "SomeName", Context = 1},
+        new LLMModelRequest{FilePath="SomePath", Name="SomeName", Context=0}
+    };
+
+    [Theory]
+    [MemberData(nameof(InvalidUpdateRequest))]
+    public void Update_InvalidRequest(LLMModelRequest request){
+        var results = new List<System.ComponentModel.DataAnnotations.ValidationResult>();
+        var isValid = Validator.TryValidateObject(request, new ValidationContext(request), results, true);
+
+        Assert.False(isValid);
+    }
+
+    [Fact]
+    public async Task Delete_NoContent(){
+        var model = ControllersUtil.CreateLLMModel(_factory);
+        var result = await _client.DeleteAsync($"{URL}/{model.ID}");
+
+        Assert.Equal(HttpStatusCode.NoContent, result.StatusCode);
+    }
+
+    [Fact]
+    public async Task Delete_CallsService(){
+        var model = ControllersUtil.CreateLLMModel(_factory);
+        await _client.DeleteAsync($"{URL}/{model.ID}");
+
+        // Verify the passthrough
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        Assert.Null(db.LLMModel.Find(model.ID));
     }
 }

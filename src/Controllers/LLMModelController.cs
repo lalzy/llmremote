@@ -33,4 +33,15 @@ public class LLMModelController(LLMModelsService service) : ControllerBase{
         if(!ModelState.IsValid) return ValidationProblem(ModelState);
         return Ok(_service.GetAll(page:page ??= 1, count: count??= 10, orderBy: orderBy ??=LLMModelsService.OrderBy.Name));
     }
+
+    [HttpPatch("{model_ID}")]
+    public IActionResult Patch(Guid model_ID, [FromBody] LLMModelRequest request){
+        return Ok(_service.Update(model_ID, request));
+    }
+
+    [HttpDelete("{model_ID}")]
+    public IActionResult Delete(Guid model_ID){
+        _service.Delete(model_ID);
+        return NoContent();
+    }
 }
