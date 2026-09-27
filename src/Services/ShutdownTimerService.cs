@@ -13,6 +13,7 @@ public class ShutdownTimerService
     public DateTimeOffset? ShutdownAt { get; private set; }
     private readonly object _lock = new();
     private ITimer? _timer;
+    private object? _token;
 
     public ShutdownTimerService(TimeProvider timeProvider, LlamaService llama)
     {
@@ -23,8 +24,10 @@ public class ShutdownTimerService
     /// <summary>Cancel shutdown timer</summary>
     public void Cancel()
     {
-        ShutdownAt = null;
-        _timer?.Dispose();
+        lock(_lock){
+            ShutdownAt = null;
+            _timer?.Dispose();
+        }
     }
 
     /// <summary>Set the time to shutdown</summary>
@@ -32,20 +35,31 @@ public class ShutdownTimerService
     public void Set(int duration)
     {
         if(duration < 1) throw new ArgumentException("must be at least 1 second");
-        ShutdownAt = _timeProvider.GetUtcNow().AddSeconds(duration);
-        _timer?.Dispose();
-        _timer = _timeProvider.CreateTimer(_ => Fire(), null, TimeSpan.FromSeconds(duration), Timeout.InfiniteTimeSpan);
+        lock(_lock){
+            ShutdownAt = _timeProvider.GetUtcNow().AddSeconds(duration);
+            _timer?.Dispose();
+            var token = new object();
+            _timer = _timeProvider.CreateTimer(_ => Fire(token), null, TimeSpan.FromSeconds(duration), Timeout.InfiniteTimeSpan);
+            
+        }
     }
 
     /// <summary>Trigger shutdown of processes</summary>
-    private void Fire()
+    private void Fire(object token)
     {
-        ShutdownAt = null;
-        _llama.StopServer();
+        lock(_lock){
+            if(token != _token) return;
+            Clear();
+            _llama.StopServer();
+        }
     }
 
     /// <summary>Cleanup of the thread after shutting down processes</summary>
     private void Clear()
     {
+        ShutdownAt = null;
+        _timer?.Dispose();
+        _timer = null;
+        _token = null;
     }
 }

@@ -84,6 +84,25 @@ public class ShutdownTimerServiceTests:DatabaseTestBase{
     }
 
     [Fact]
+    public void Set_ParrallelCallsLaveOnlyOneTimer(){
+        var duration = _faker.Random.Int(1, 3600);
+        var threadCount = Environment.ProcessorCount * 2;
+        var barrier = new Barrier(threadCount);
+
+        var threads = Enumerable.Range(0, threadCount)
+            .Select(_ => new Thread(() => {
+                barrier.SignalAndWait();
+                for (var i = 0; i < 1000; i++) _service.Set(duration);
+            })).ToList();
+
+        threads.ForEach(t => t.Start());
+        threads.ForEach(t => t.Join());
+
+        _timeProvider.Advance(TimeSpan.FromSeconds(duration));
+        Assert.Equal(1, _process.StopCount);
+    }
+
+    [Fact]
     public void Cancel_ClearShutdownAt(){
         _service.Set(_faker.Random.Int(1, 3600));
         _service.Cancel();
@@ -98,5 +117,25 @@ public class ShutdownTimerServiceTests:DatabaseTestBase{
 
         _timeProvider.Advance(TimeSpan.FromSeconds(duration));
         Assert.Equal(0, _process.StopCount);
+    }
+
+    [Fact]
+    public void SetAndCancel_ParallelCallsStayConsistent(){
+        var duration = _faker.Random.Int(1, 3600);
+
+        for (var round = 0; round < 5000; round++){
+            var barrier = new Barrier(2);
+            var set = new Thread(() => { barrier.SignalAndWait(); _service.Set(duration); });
+            var cancel = new Thread(() => { barrier.SignalAndWait(); _service.Cancel(); });
+
+            set.Start(); cancel.Start();
+            set.Join(); cancel.Join();
+
+            var expected = _service.ShutdownAt is null ? 0 : 1;
+            var before = _process.StopCount;
+            _timeProvider.Advance(TimeSpan.FromSeconds(duration));
+
+            Assert.Equal(expected, _process.StopCount - before);
+        }
     }
 }
