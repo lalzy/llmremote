@@ -493,3 +493,4 @@ flycheck_*.el
 #sqlite
 *.db-shm
 *.db-wal
+*.db
