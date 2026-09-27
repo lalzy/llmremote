@@ -6,7 +6,15 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>80c99249-e753-4ca5-a56e-c249149dd87c</UserSecretsId>
   </PropertyGroup>
-
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+  <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+  <DefineConstants>$(DefineConstants);LINUX</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+  <DefineConstants>$(DefineConstants);MAC</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

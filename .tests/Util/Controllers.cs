@@ -13,6 +13,7 @@ using LLMRemote.Models;
 using LLMRemote.Tests.Factories;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Hosting;
+using System.Net;
 
 namespace LLMRemote.Tests.Util;
 
@@ -30,6 +31,10 @@ public static class ControllersUtil{
 
                 services.AddDbContext<AppDbContext>(options => options.UseSqlite(connection));
                 
+                // Block outgoing HTTP
+                services.RemoveAll<HttpClient>();
+                    services.AddSingleton(new HttpClient(new FakeHttpHandler(HttpStatusCode.OK)));
+                
                 // Replace the keyed process services
                 foreach (var key in new[] { "llama", "comfyui"}){
                     services.RemoveAllKeyed<IManagedProcess>(key);
@@ -38,12 +43,6 @@ public static class ControllersUtil{
             });
         });
         
-    // Seed the DB for tests
-    using (var scope = retFactory.Services.CreateScope()){
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        db.Database.Migrate();
-    }
-
         return (retFactory, retFactory.CreateClient());
     }
 

@@ -3,7 +3,7 @@ using LLMRemote.Data;
 using LLMRemote.Services;
 using LLMRemote.Extensions;
 using LLMRemote.Options;
-
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +14,7 @@ builder.Services.Configure<Apps>(builder.Configuration.GetSection("Apps"));
 
 builder.Services.AddServices();
 builder.Services.AddKeyedSingleton<IManagedProcess, ManagedProcess>("llama");
+builder.Services.AddSingleton<HttpClient>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c=>{
@@ -23,7 +24,8 @@ builder.Services.AddSwaggerGen(c=>{
         });
 });
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 builder.Services.AddRazorPages(options => {options.RootDirectory = "/src/views";});
 

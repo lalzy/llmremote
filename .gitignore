@@ -489,3 +489,7 @@ auto-save-list/
 tramp
 .projectile
 flycheck_*.el
+
+#sqlite
+*.db-shm
+*.db-wal

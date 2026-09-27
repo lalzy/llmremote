@@ -22,4 +22,9 @@ public class LlamaController(LlamaService service) : ControllerBase{
         _service.StopServer();
         return Ok();
     }
+
+    [HttpGet("health")]
+    public async Task<IActionResult> Health(){
+        return Ok(await _service.RunningP());
+    }
 }
