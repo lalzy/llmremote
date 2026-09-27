@@ -1,20 +1,69 @@
-﻿// ==== Model List ===
+﻿// ==== Status ====
+
+const checkSeconds = 1000;
+async function setLlamaStatus(){
+    const llamaStatus = document.getElementById("llamastatus");
+    
+    const res = await fetch(`/api/llama/health`);
+    const status = await res.json();
+    llamaStatus.textContent = `Llama: ${status}`;
+    llamaStatus.className = `server-status ${status.toLowerCase()}`;
+    switch(status.toLowerCase()){
+    case "online":
+	setItemState("running");
+	return;
+    case "loading":
+	setItemState("loading");
+	return;
+    default:
+	setItemState(null);
+    }
+}
+
+setLlamaStatus();
+setInterval(setLlamaStatus, checkSeconds);
+
+
+// ==== Model List ===
 const modelList = document.getElementById("modelList");
 const emptyText = document.getElementById("emptyText");
+
+// === LLamaModelState ===
+let activeId = localStorage.getItem("activeId");
+
+function setItemState(state){
+    // Clear old states
+    document.querySelectorAll("#modelList li").forEach(li => li.classList.remove("loading", "running"));
+
+    if (activeId === null || !state) return;
+    const item = document.querySelector(`#modelList li[data-id="${activeId}"]`);
+    if(item) item.classList.add(state);
+}
+
 
 function addItemButton(buttonText, func){
     const button = document.createElement("button");
     button.textContent = buttonText;
-    button.addEventListener("click", func);
+    button.addEventListener("click", (event) => {
+	event.stopPropagation();
+	func();
+    });
     return button;
 }
 
+// Create the list of models
 function createModelItems(models){
     for(const model of models){
 	const item = document.createElement("li");
 	item.textContent = `${model.name}`;
+	item.dataset.id = model.id;
 
 	item.addEventListener("click", async () => {
+	    activeId = model.id;
+	    localStorage.setItem("activeId", model.id);
+	    setItemState("loading");
+	    
+	    // Start the llama process
 	    const response = await fetch(`/api/llama/start`, {
 		method:"POST",
 		headers: {"Content-Type":"application/json"},
@@ -22,15 +71,24 @@ function createModelItems(models){
 	    });
 	});
 
-	const editButton = addItemButton("Edit", () => openEdit(model));
-	const deleteButton = addItemButton("Delete", () => openDelete(model));
+	const editButton = addItemButton("✎", () => openEdit(model));
+	const deleteButton = addItemButton("✕", () => openDelete(model));
+	deleteButton.classList.add("delete-button");
 	item.append(editButton, deleteButton)
 	modelList.appendChild(item);
     }
 }
 
+// Change sort order
+const sortSelect = document.getElementById("sortSelect");
+sortSelect.value = localStorage.getItem("orderBy") ?? "Name";
+sortSelect.addEventListener("change", () => {
+    localStorage.setItem("orderBy", sortSelect.value);
+    loadModels();
+});
+
 async function loadModels(){
-    const response = await fetch("/api/llmmodel/all?orderBy=Name");
+    const response = await fetch(`/api/llmmodel/all?orderBy=${sortSelect.value}`);
     
     if (!response.ok) {
         console.error("Load failed:", response.status, await response.text());
@@ -43,8 +101,6 @@ async function loadModels(){
 
     createModelItems(models)
     
-
-
     emptyText.hidden = models.length > 0;
 }
 
