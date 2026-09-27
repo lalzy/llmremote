@@ -8,6 +8,7 @@ using LLMRemote.Tests.Factories;
 using Bogus;
 using LLMRemote.Models;
 using System.Net;
+using LLMRemote.Util;
 
 namespace LLMRemote.Tests.Services;
 
@@ -84,13 +85,13 @@ public class LlamaServiceTests : DatabaseTestBase{
 
         Assert.Equal(ServerState.Offline, (await service.RunningP()));
     }
-
+    
     [Theory]
     [InlineData(HostOS.Windows, "cmd.exe", "/k \"\"/llama\" -m x\"")]
     [InlineData(HostOS.Linux,   "bash",    "-c \"'/llama' -m x; exec bash\"")]
     [InlineData(HostOS.Mac,   "zsh",     "-c \"'/llama' -m x; exec zsh\"")]
     public void CreateOSTerminalCommand_ReturnsCorrectCommandPerOS(HostOS os, string expectedFile, string expectedArgs){
-        var (file, args) = LlamaService.CreateOSTerminalCommand(os, "/llama", "-m x");
+        var (file, args) = OpenTerminalHelper.CreateOSTerminalCommand(os, "/llama", "-m x");
 
         Assert.Equal(expectedFile, file);
         Assert.Equal(expectedArgs, args);

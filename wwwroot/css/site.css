@@ -180,3 +180,8 @@ button {
 #timerError {
     flex-basis: 100%;
 }
+.service-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}

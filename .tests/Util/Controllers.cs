@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
@@ -39,7 +38,7 @@ public static class ControllersUtil{
                 services.AddSingleton<TimeProvider>(new FakeTimeProvider());
 
                 // Replace the keyed process services
-                foreach (var key in new[] { "llama", "comfyui"}){
+                foreach (var key in new[] { "llama", "comfy"}){
                     services.RemoveAllKeyed<IManagedProcess>(key);
                     services.AddKeyedTransient<IManagedProcess>(key, (_, _) => new Mock<IManagedProcess>().Object);
                 }

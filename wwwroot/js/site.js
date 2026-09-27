@@ -243,3 +243,30 @@ timerCancel.addEventListener("click", async () => {
 
 updateTimer();
 setInterval(updateTimer, checkMS);
+
+// === ComfyUI ===
+// === ComfyUI ===
+const comfyStatus = document.getElementById("comfystatus");
+const comfyButton = document.getElementById("comfyButton");
+let comfyStarting = false;
+
+async function setComfyStatus(){
+    try {
+	const res = await fetch("/api/comfy/health");
+	const status = await res.json();
+	if (status.toLowerCase() !== "offline") comfyStarting = false;
+	comfyStatus.textContent = `ComfyUI: ${comfyStarting ? "Starting" : status}`;
+	comfyStatus.className = `server-status ${status.toLowerCase()}`;
+	comfyButton.textContent = status.toLowerCase() === "offline" && !comfyStarting ? "Start" : "Cancel";
+    } catch {}
+}
+
+comfyButton.addEventListener("click", async () => {
+    const starting = comfyButton.textContent === "Start";
+    comfyStarting = starting;
+    await fetch(starting ? "/api/comfy/start" : "/api/comfy/stop", {method: "POST"});
+    setComfyStatus();
+});
+
+setComfyStatus();
+setInterval(setComfyStatus, checkMS);

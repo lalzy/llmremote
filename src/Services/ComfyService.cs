@@ -7,23 +7,33 @@ using LLMRemote.Options;
 using LLMRemote.Models;
 using System.Net.Http;
 using System.Threading.Tasks;
+using LLMRemote.Util;
 
 namespace LLMRemote.Services;
 
-public class ComfyService([FromKeyedServices("comfy")] IManagedProcess process, IOptions<Apps> apps, HttpClient client){
+public class ComfyService([FromKeyedServices("comfy")] IManagedProcess process, IOptions<Apps> apps, HttpClient client, HostOS os = OpenTerminalHelper.CurrentOS){
     private readonly IManagedProcess _process = process;
     private readonly AppConfig _comfyConfig = apps.Value.ComfyUI;
     private readonly HttpClient _client = client;
+    private readonly HostOS CurrentOS = os;
 
-    private string CreateComfyUIArgument() { return ""; }
+    private string CreateComfyUIArgument() {
+        string mainPy = Path.Combine(_comfyConfig.Path, "ComfyUI", "main.py");
+        string windowsFlag = CurrentOS == HostOS.Windows ? "--windows-standalone-build " : "";
 
-    /// <summary>Starts the ComfyUI-server process</summary>
-    /// <remarks>Opens an external terminal that then runs comfyUI to circumvent it closing on errors </remarks>
-    public void StartServer(){
-        if(!_process.NotRunning) return;
-        _process.Start(_comfyConfig.Path, CreateComfyUIArgument());
+        return $"-s \"{mainPy}\" {windowsFlag}--port {_comfyConfig.Port} {_comfyConfig.OtherSettings}";
     }
 
+    public void StartServer(){
+        if(!_process.NotRunning) return;
+
+        string python = Path.Combine(_comfyConfig.Path, "python_embeded", "python.exe");
+
+        (string file, string arguments) = OpenTerminalHelper.CreateOSTerminalCommand(CurrentOS, python, CreateComfyUIArgument());
+
+        _process.Start(file, arguments);
+    }
+    
     /// <summary>Stops the ComfyUI-Server process </summary>
     public void StopServer(){
         if(_process.NotRunning) return;
@@ -39,10 +49,19 @@ public class ComfyService([FromKeyedServices("comfy")] IManagedProcess process, 
     ///</returns>
     public async Task<ServerState> RunningP() {
         if(_process.NotRunning) return ServerState.Offline;
-        
-        var response = await _client.GetAsync($"http://localHost:{_comfyConfig.Port}");
 
-        if(response.StatusCode == HttpStatusCode.OK) return ServerState.Online;
-        else return ServerState.Loading;
+        try{
+            using var timeout = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(1));
+            var response = await _client.GetAsync($"http://localhost:{_comfyConfig.Port}", timeout.Token);
+
+            if(response.StatusCode == HttpStatusCode.OK) return ServerState.Online;
+            return ServerState.Loading;
+        }
+        catch(HttpRequestException){
+            return ServerState.Loading;
+        }
+        catch(TaskCanceledException){
+            return ServerState.Loading;
+        }
     }
 }

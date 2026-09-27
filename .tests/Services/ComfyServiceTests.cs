@@ -8,6 +8,7 @@ using LLMRemote.Tests.Factories;
 using Bogus;
 using LLMRemote.Models;
 using System.Net;
+using LLMRemote.Util;
 
 namespace LLMRemote.Tests.Services;
 
@@ -19,13 +20,14 @@ public class ComfyServiceTests{
 
     public ComfyServiceTests(){
         _apps = new OptionsWrapper<Apps>(new Apps {
-                ComfyUI = new AppConfig { Path = _faker.System.FilePath(), Port = _faker.Internet.Port(), OtherSettings ="" }
+                ComfyUI = new AppConfig { Path = _faker.System.FilePath(), Port = _faker.Internet.Port(), OtherSettings = _faker.Lorem.Word() }
         });
 
         _service = CreateService(HttpStatusCode.OK);
     }
     
-    private ComfyService CreateService(HttpStatusCode code) => new ComfyService(_process, _apps, new HttpClient(new FakeHttpHandler(code)));
+    private ComfyService CreateService(HttpStatusCode code, HostOS os = HostOS.Windows) =>
+        new ComfyService(_process, _apps, new HttpClient(new FakeHttpHandler(code)), os);
 
     [Fact]
     public async Task RunnigP_ServerRespondsOfflineWhenProcessNotRunning(){
@@ -65,10 +67,47 @@ public class ComfyServiceTests{
         Assert.Equal(0, _process.StopCount);
     }
 
+    [Theory]
+    [InlineData(HostOS.Windows, "cmd.exe")]
+    [InlineData(HostOS.Linux,   "bash")]
+    [InlineData(HostOS.Mac,     "zsh")]
+    public void StartServer_UsesTerminalForOS(HostOS os, string expectedFile){
+        ComfyService service = CreateService(HttpStatusCode.OK, os);
+
+        service.StartServer();
+
+        Assert.Equal(expectedFile, _process.FileName);
+    }
+    
+    [Theory]
+    [InlineData(HostOS.Linux)]
+    [InlineData(HostOS.Mac)]
+    public void StartServer_NonWindows_NoWindowsFlag(HostOS os){
+        ComfyService service = CreateService(HttpStatusCode.OK, os);
+
+        service.StartServer();
+
+        Assert.DoesNotContain("--windows-standalone-build", _process.Arguments);
+    }
+
+
     [Fact]
-    public void SartServer_AlreadyRunning_DoesNotStartAgain(){
-        _service.StartServer();
-        _service.StartServer();
-        Assert.Equal(1, _process.StartCount);
+    public async Task RunningP_ConnectionRefused_ReturnsLoading(){
+        ComfyService service = new ComfyService(_process, _apps, new HttpClient(new RefusedHttpHandler()), HostOS.Windows);
+        service.StartServer();
+
+        ServerState result = await service.RunningP();
+
+        Assert.Equal(ServerState.Loading, result);
+    }
+
+    [Fact]
+    public async Task RunningP_RequestHangs_ReturnsLoading(){
+        ComfyService service = new ComfyService(_process, _apps, new HttpClient(new HangingHttpHandler()), HostOS.Windows);
+        service.StartServer();
+
+        ServerState result = await service.RunningP();
+
+        Assert.Equal(ServerState.Loading, result);
     }
 }

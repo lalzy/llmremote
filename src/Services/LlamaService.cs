@@ -5,6 +5,7 @@ using System.Net;
 using System.Text;
 using LLMRemote.Options;
 using LLMRemote.Models;
+using LLMRemote.Util;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -15,15 +16,7 @@ public class LlamaService([FromKeyedServices("llama")] IManagedProcess process, 
     private readonly IManagedProcess _process = process;
     private readonly AppConfig _llamaConfig = apps.Value.Llama;
     private readonly HttpClient _client = client;
-    ///<summary>Assigned at compile time. Used to allow testing of CreateOSTerminalCommand</summary>
-    private readonly HostOS CurrentOS =
-#if WINDOWS
-        HostOS.Windows;
-#elif LINUX
-    HostOS.Linux;
-#elif MAC
-    HostOS.Mac;
-#endif
+
 
     private string CreateLlamaArgument(LLMModel model){
         var arguments = new StringBuilder();
@@ -34,17 +27,6 @@ public class LlamaService([FromKeyedServices("llama")] IManagedProcess process, 
         return arguments.ToString();
     }
 
-    /// <summary>Creates OS-specific terminal command for running llama-server</summary>
-    /// <param name="os">Current operating system</param>
-    /// <param name="path">path to Llama-server</param>
-    /// <param name="arguments">Arguments to llama.</param>
-    /// <returns>A tuple of the terminal to run (<c>fileName</c>) and its arguments (<c>arguments</c>)</returns>
-    public static (string fileName, string arguments) CreateOSTerminalCommand(HostOS os, string path, string arguments) => os switch
-    {
-        HostOS.Windows => ("cmd.exe", $"/k \"\"{path}\" {arguments}\""),
-        HostOS.Linux   => ("bash", $"-c \"'{path}' {arguments}; exec bash\""),
-        HostOS.Mac   => ("zsh", $"-c \"'{path}' {arguments}; exec zsh\""),
-    };
 
     /// <summary>Starts the Llama-server process</summary>
     /// <param name="model">The LLM Model object returned from the database / llmmodel endpoint</param>
@@ -54,7 +36,7 @@ public class LlamaService([FromKeyedServices("llama")] IManagedProcess process, 
         // Only one server instance should run at a time
         if(!_process.NotRunning) _process.Stop();
 
-        var (file, args) = CreateOSTerminalCommand(CurrentOS, _llamaConfig.Path, CreateLlamaArgument(model));
+        var (file, args) = OpenTerminalHelper.CreateOSTerminalCommand(OpenTerminalHelper.CurrentOS, _llamaConfig.Path, CreateLlamaArgument(model));
         _process.Start(file, args);
     }
 
