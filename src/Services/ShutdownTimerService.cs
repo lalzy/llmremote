@@ -53,7 +53,7 @@ public class ShutdownTimerService
             if(token != _token) return;
             Clear();
             using var scope = _scopeFactory.CreateScope();
-            scope.ServiceProvider.GetRequiredKeyedService<LlamaService>("llama").StopServer();
+            scope.ServiceProvider.GetRequiredService<LlamaService>().StopServer();
         }
     }
 

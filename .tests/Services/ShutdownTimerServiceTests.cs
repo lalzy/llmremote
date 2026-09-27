@@ -31,7 +31,7 @@ public class ShutdownTimerServiceTests:DatabaseTestBase{
 
         // get keyed LLamaService
         var scopeFactory = new ServiceCollection()
-            .AddKeyedScoped<LlamaService>("llama", (_, _) => _llama)
+            .AddScoped<LlamaService>(_ => _llama)
             .BuildServiceProvider()
             .GetRequiredService<IServiceScopeFactory>();
 

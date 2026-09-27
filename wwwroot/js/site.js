@@ -1,6 +1,6 @@
 ﻿// ==== Status ====
 
-const checkSeconds = 1000;
+const checkMS = 1000;
 async function setLlamaStatus(){
     const llamaStatus = document.getElementById("llamastatus");
     
@@ -21,8 +21,7 @@ async function setLlamaStatus(){
 }
 
 setLlamaStatus();
-setInterval(setLlamaStatus, checkSeconds);
-
+setInterval(setLlamaStatus, checkMS);
 
 // ==== Model List ===
 const modelList = document.getElementById("modelList");
@@ -191,3 +190,56 @@ modelForm.addEventListener("submit", async (event) => {
     modalDialog.close();
     loadModels();
 });
+
+
+// === Timer ===
+
+const timerLeft = document.getElementById("timerLeft");
+const timerCancel = document.getElementById("timerCancel");
+
+async function updateTimer(){
+    const res = await fetch("/api/timer/shutdowntime");
+    const data = res.status === 204 ? null : await res.json();
+
+    timerLeft.parentElement.hidden = false;
+    if(data == null){
+	timerLeft.textContent = "Not-started";
+	timerCancel.hidden = true;
+	return;
+    }
+
+    const secondsLeft = Math.max(0, Math.floor((new Date(data) - Date.now()) / 1000));
+    const hours = Math.floor(secondsLeft / 3600);
+    const minutes = Math.floor((secondsLeft % 3600) / 60);
+    const seconds = secondsLeft % 60;
+    timerLeft.textContent = `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    timerCancel.hidden = false;
+}
+
+// Set Button
+const timerUnit = document.getElementById("timerUnit");
+const timerValue = document.getElementById("timerValue");
+const timerSet = document.getElementById("timerSet");
+const unitSeconds = {Minutes: 60, Hours: 3600};
+
+timerSet.addEventListener("click", async () => {
+    const seconds = Math.floor(Number(timerValue.value) * unitSeconds[timerUnit.value]);
+    if (seconds < 300){
+	timerError.textContent = "Minimum is 5 minutes";
+	return;
+    };
+
+    await fetch(`/api/timer/set?duration=${seconds}`, {
+	method: "POST",
+	headers: {"Content-Type": "application/json"},
+    });
+    updateTimer();
+});
+
+timerCancel.addEventListener("click", async () => {
+    await fetch("/api/timer/cancel", {method: "POST"});
+    updateTimer();
+});
+
+updateTimer();
+setInterval(updateTimer, checkMS);

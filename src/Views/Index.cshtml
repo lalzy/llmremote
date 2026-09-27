@@ -10,6 +10,23 @@
 	    <p id="llamastatus" class="server-status offline">Llama: Checking...</p>
 	</div>
 
+	<!-- Timer -->
+	<div class="timer">
+	    <div class="timer-row" hidden>
+		<p id="timerLeft"></p>
+		<button id="timerCancel" tpye="button">Cancel</button>
+	    </div>
+	    <p id="timerError" class="error"></p>
+	    <div class="timer-row">
+		<select id="timerUnit">
+		    <option value="Minutes">Minutes</option>
+		    <option value="Hours">Hours</option>
+		</select>
+		<input id="timerValue" type="number" min"1">
+		<button id="timerSet" type="button">Set</button>
+	    </div>
+	</div>
+	
 	<!-- Models -->
 	<button id="addModel" class="button-main">Add Model</button>
 	<select id="sortSelect">

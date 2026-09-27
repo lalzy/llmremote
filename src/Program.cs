@@ -15,6 +15,7 @@ builder.Services.Configure<Apps>(builder.Configuration.GetSection("Apps"));
 builder.Services.AddServices();
 builder.Services.AddKeyedSingleton<IManagedProcess, ManagedProcess>("llama");
 builder.Services.AddSingleton<HttpClient>();
+builder.Services.AddSingleton(TimeProvider.System);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c=>{

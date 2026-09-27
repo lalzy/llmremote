@@ -4,6 +4,7 @@
     --text: #222222;
     --border: #cccccc;
     --shadow: rgba(0, 0, 0, 0.1);
+    --button: #ffffff;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -13,6 +14,7 @@
         --text: #eeeeee;
         --border: #444444;
         --shadow: rgba(0, 0, 0, 0.5);
+        --button: #3c3c3c;
     }
 }
 
@@ -99,15 +101,6 @@ body {
     min-height: 44px;
 }
 
-button {
-    min-height: 44px;
-    font-size: 1rem;
-}
-
-dialog {
-    width: 90%;
-    max-width: 400px;
-}
 
 dialog label {
     display: block;
@@ -136,4 +129,54 @@ dialog input {
     color: var(--text);
     border: 1px solid var(--border);
     border-radius: 8px;
+}
+button,
+select,
+input {
+    min-height: 44px;
+    font-size: 16px;
+    padding: 0 12px;
+    background: var(--button);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+button {
+    cursor: pointer;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+.error {
+    color: red;
+    margin: 4px 0;
+}
+
+.timer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.timer-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#timerLeft {
+    margin: 0;
+}
+
+#timerValue {
+    width: 100px;
+}
+
+#timerError {
+    flex-basis: 100%;
 }
