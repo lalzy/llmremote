@@ -26,4 +26,49 @@ public class ComfyServiceTests{
     }
     
     private ComfyService CreateService(HttpStatusCode code) => new ComfyService(_process, _apps, new HttpClient(new FakeHttpHandler(code)));
+
+    [Fact]
+    public async Task RunnigP_ServerRespondsOfflineWhenProcessNotRunning(){
+        ServerState result = await _service.RunningP();
+
+        Assert.Equal(ServerState.Offline, result);
+    }
+
+    [Fact]
+    public async Task RunningP_ServerRespondsOKWhenOnline(){
+        var service = CreateService(HttpStatusCode.OK);
+        service.StartServer();
+        ServerState result = await service.RunningP();
+
+        Assert.Equal(ServerState.Online, result);
+    }
+
+    [Fact]
+    public async Task RunningP_ServerRespondsLoadingWhenNotConnected(){
+        var service = CreateService(HttpStatusCode.BadGateway);
+        service.StartServer();
+        ServerState result = await service.RunningP();
+
+        Assert.Equal(ServerState.Loading, result);
+    }
+
+    [Fact]
+    public void StopServer_StopsProcess(){
+        _service.StartServer();
+        _service.StopServer();
+        Assert.Equal(1, _process.StopCount);
+    }
+
+    [Fact]
+    public void StopServer_ProcessNotRunning_DoesNotStop(){
+        _service.StopServer();
+        Assert.Equal(0, _process.StopCount);
+    }
+
+    [Fact]
+    public void SartServer_AlreadyRunning_DoesNotStartAgain(){
+        _service.StartServer();
+        _service.StartServer();
+        Assert.Equal(1, _process.StartCount);
+    }
 }

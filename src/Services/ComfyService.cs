@@ -19,10 +19,17 @@ public class ComfyService([FromKeyedServices("comfy")] IManagedProcess process, 
 
     /// <summary>Starts the ComfyUI-server process</summary>
     /// <remarks>Opens an external terminal that then runs comfyUI to circumvent it closing on errors </remarks>
-    public void StartServer(){}
+    public void StartServer(){
+        if(!_process.NotRunning) return;
+        _process.Start(_comfyConfig.Path, CreateComfyUIArgument());
+    }
 
     /// <summary>Stops the ComfyUI-Server process </summary>
-    public void StopServer(){}
+    public void StopServer(){
+        if(_process.NotRunning) return;
+        
+        _process.Stop();
+    }
 
     /// <summary>Get current running state of ComfyUI</summary>
     /// <returns>
@@ -30,5 +37,12 @@ public class ComfyService([FromKeyedServices("comfy")] IManagedProcess process, 
     /// <see cref="ServerState.Loading"/> If the server is booting up
     /// <see cref="ServerState.Offline"/> If the server is not running
     ///</returns>
-    public async Task<ServerState> RunningP() { return ServerState.Offline; }
+    public async Task<ServerState> RunningP() {
+        if(_process.NotRunning) return ServerState.Offline;
+        
+        var response = await _client.GetAsync($"http://localHost:{_comfyConfig.Port}");
+
+        if(response.StatusCode == HttpStatusCode.OK) return ServerState.Online;
+        else return ServerState.Loading;
+    }
 }
