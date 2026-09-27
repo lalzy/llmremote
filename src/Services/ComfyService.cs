@@ -52,7 +52,7 @@ public class ComfyService([FromKeyedServices("comfy")] IManagedProcess process, 
 
         try{
             using var timeout = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(1));
-            var response = await _client.GetAsync($"http://localhost:{_comfyConfig.Port}", timeout.Token);
+            var response = await _client.GetAsync($"http://127.0.0.1:{_comfyConfig.Port}", timeout.Token);
 
             if(response.StatusCode == HttpStatusCode.OK) return ServerState.Online;
             return ServerState.Loading;

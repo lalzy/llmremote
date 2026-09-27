@@ -185,3 +185,25 @@ button {
     align-items: center;
     gap: 8px;
 }
+#comfyButton {
+    min-height: 0;
+    padding: 2px 8px;
+    font-size: inherit;
+    line-height: inherit;
+}
+.server-status.offline span {
+    color: red;
+}
+
+.server-status.loading span {
+    color: orange;
+}
+
+.server-status.online span,
+.server-status.running span {
+    color: green;
+}
+
+#modelList li.loading {
+    border-color: orange;
+}

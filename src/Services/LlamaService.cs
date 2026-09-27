@@ -51,17 +51,21 @@ public class LlamaService([FromKeyedServices("llama")] IManagedProcess process, 
     /// <see cref="ServerState.Loading"/> If the server is booting up
     /// <see cref="ServerState.Offline"/> If the server is not running
     ///</returns>
-    public async Task<ServerState> RunningP(){
-        if(!_process.NotRunning){
-            var response = await _client.GetAsync($"http://localhost:{_llamaConfig.Port}/health");
+    public async Task<ServerState> RunningP() {
+        if(_process.NotRunning) return ServerState.Offline;
 
-            if(response.StatusCode == HttpStatusCode.OK){
-                return ServerState.Online;
-            }else{
-                return ServerState.Loading;
-            }
+        try{
+            using var timeout = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(1));
+            var response = await _client.GetAsync($"http://127.0.0.1:{_llamaConfig.Port}", timeout.Token);
+
+            if(response.StatusCode == HttpStatusCode.OK) return ServerState.Online;
+            return ServerState.Loading;
         }
-        return ServerState.Offline;
-        
+        catch(HttpRequestException){
+            return ServerState.Loading;
+        }
+        catch(TaskCanceledException){
+            return ServerState.Loading;
+        }
     }
 }

@@ -6,7 +6,7 @@ async function setLlamaStatus(){
     
     const res = await fetch(`/api/llama/health`);
     const status = await res.json();
-    llamaStatus.textContent = `Llama: ${status}`;
+    llamaStatus.innerHTML = `Llama: <span>${status}</span>`;
     llamaStatus.className = `server-status ${status.toLowerCase()}`;
     switch(status.toLowerCase()){
     case "online":
@@ -255,9 +255,9 @@ async function setComfyStatus(){
 	const res = await fetch("/api/comfy/health");
 	const status = await res.json();
 	if (status.toLowerCase() !== "offline") comfyStarting = false;
-	comfyStatus.textContent = `ComfyUI: ${comfyStarting ? "Starting" : status}`;
+	comfyStatus.innerHTML = `ComfyUI: <span>${comfyStarting ? "Starting" : status}</span>`;
 	comfyStatus.className = `server-status ${status.toLowerCase()}`;
-	comfyButton.textContent = status.toLowerCase() === "offline" && !comfyStarting ? "Start" : "Cancel";
+	comfyButton.textContent = status.toLowerCase() === "offline" && !comfyStarting ? "Start" : "Stop";
     } catch {}
 }
 
