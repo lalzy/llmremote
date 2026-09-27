@@ -1,4 +1,5 @@
 // LLamaService.cs
+
 using Microsoft.Extensions.Options;
 using System.Net;
 using System.Text;
@@ -12,7 +13,7 @@ namespace LLMRemote.Services;
 ///<summary>Service to manage llama-server process</summary>
 public class LlamaService([FromKeyedServices("llama")] IManagedProcess process, IOptions<Apps> apps, HttpClient client){
     private readonly IManagedProcess _process = process;
-    private readonly LlamaConfig _llamaConfig = apps.Value.Llama;
+    private readonly AppConfig _llamaConfig = apps.Value.Llama;
     private readonly HttpClient _client = client;
     ///<summary>Assigned at compile time. Used to allow testing of CreateOSTerminalCommand</summary>
     private readonly HostOS CurrentOS =

@@ -14,6 +14,7 @@ builder.Services.Configure<Apps>(builder.Configuration.GetSection("Apps"));
 
 builder.Services.AddServices();
 builder.Services.AddKeyedSingleton<IManagedProcess, ManagedProcess>("llama");
+builder.Services.AddKeyedSingleton<IManagedProcess, ManagedProcess>("comfy");
 builder.Services.AddSingleton<HttpClient>();
 builder.Services.AddSingleton(TimeProvider.System);
 

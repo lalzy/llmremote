@@ -23,7 +23,7 @@ public class ShutdownTimerServiceTests:DatabaseTestBase{
 
     public ShutdownTimerServiceTests(DatabaseFixture fixture) : base (fixture){
         _process = new FakeProcess();
-        _llama = new LlamaService(_process, new OptionsWrapper<Apps>(new Apps {Llama = new LlamaConfig {
+        _llama = new LlamaService(_process, new OptionsWrapper<Apps>(new Apps {Llama = new AppConfig {
                         Path = _faker.System.FilePath(), Port = _faker.Internet.Port(), OtherSettings =""
                         }}), new HttpClient(new FakeHttpHandler(HttpStatusCode.OK)));
         _now = _faker.Date.RecentOffset();
