@@ -33,7 +33,7 @@ public class LlamaServiceTests : DatabaseTestBase{
         _service.StartServer(model);
 
         Assert.Equal(1, _process.StartCount);
-        Assert.False(_process.HasExited);
+        Assert.False(_process.NotRunning);
     }
     
     [Fact]
@@ -51,7 +51,7 @@ public class LlamaServiceTests : DatabaseTestBase{
         _service.StartServer(model);
         
         _service.StopServer();
-        Assert.True(_process.HasExited);
+        Assert.True(_process.NotRunning);
     }
 
     [Fact]

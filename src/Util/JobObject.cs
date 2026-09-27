@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace LLMRemote.Util;
 
+/// <summary>Ties a child process to the lifetime of the app (otherwise will be left orphaned on force shutdown/crash).</summary>
 public static class JobObject {
     private static readonly IntPtr _job;
 

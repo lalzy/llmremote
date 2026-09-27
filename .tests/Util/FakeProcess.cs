@@ -9,18 +9,18 @@ public class FakeProcess : IManagedProcess
 {
     public int StartCount { get; private set; }
     public int StopCount { get; private set; }
-    public bool HasExited { get; private set; } = true;
+    public bool NotRunning { get; private set; } = true;
 
     public void Start(string fileName, string arguments)
     {
         StartCount++;
-        HasExited = false;
+        NotRunning = false;
     }
 
     public void Stop()
     {
         StopCount++;
-        HasExited = true;
+        NotRunning = true;
     }
 
     public void Dispose()
