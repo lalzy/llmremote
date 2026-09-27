@@ -25,8 +25,7 @@ public class ShutdownTimerService
     public void Cancel()
     {
         lock(_lock){
-            ShutdownAt = null;
-            _timer?.Dispose();
+            Clear();
         }
     }
 
