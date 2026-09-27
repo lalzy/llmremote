@@ -6,6 +6,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>80c99249-e753-4ca5-a56e-c249149dd87c</UserSecretsId>
   </PropertyGroup>
+  <PropertyGroup>
+  <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">$(NETCoreSdkRuntimeIdentifier)</RuntimeIdentifier>
+  <SelfContained>true</SelfContained>
+  <PublishSingleFile>true</PublishSingleFile>
+  <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+</PropertyGroup>
   <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
   <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
   </PropertyGroup>

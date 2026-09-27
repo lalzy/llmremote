@@ -42,6 +42,7 @@ public class LlamaService([FromKeyedServices("llama")] IManagedProcess process, 
 
     /// <summary>Stop Llama Server process</summary>
     public void StopServer(){
+        if(_process == null || _process.NotRunning) return;
         _process.Stop();
     }
 
@@ -56,7 +57,7 @@ public class LlamaService([FromKeyedServices("llama")] IManagedProcess process, 
 
         try{
             using var timeout = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(1));
-            var response = await _client.GetAsync($"http://127.0.0.1:{_llamaConfig.Port}", timeout.Token);
+            var response = await _client.GetAsync($"http://127.0.0.1:{_llamaConfig.Port}/health", timeout.Token);
 
             if(response.StatusCode == HttpStatusCode.OK) return ServerState.Online;
             return ServerState.Loading;

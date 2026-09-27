@@ -50,6 +50,33 @@ function addItemButton(buttonText, func){
     return button;
 }
 
+async function stopModel(modelId){
+    if(modelId == activeId){
+	// Stop the llama process
+	await fetch(`/api/llama/stop`, {method:"POST"});
+
+	// State cleanup
+	activeId = null;
+	localStorage.removeItem("activeId");
+	setItemState("stopped");
+	return true;
+    }
+    return false;
+}
+
+async function startModel(model){
+    activeId = model.id;
+    localStorage.setItem("activeId", model.id);
+    setItemState("loading");
+	    
+    // Start the llama process
+    const response = await fetch(`/api/llama/start`, {
+	method:"POST",
+	headers: {"Content-Type":"application/json"},
+	body: JSON.stringify(model)
+    });
+}
+
 // Create the list of models
 function createModelItems(models){
     for(const model of models){
@@ -58,16 +85,8 @@ function createModelItems(models){
 	item.dataset.id = model.id;
 
 	item.addEventListener("click", async () => {
-	    activeId = model.id;
-	    localStorage.setItem("activeId", model.id);
-	    setItemState("loading");
-	    
-	    // Start the llama process
-	    const response = await fetch(`/api/llama/start`, {
-		method:"POST",
-		headers: {"Content-Type":"application/json"},
-		body: JSON.stringify(model)
-	    });
+	    if(await stopModel(model.id)) return;
+	    await startModel(model);
 	});
 
 	const editButton = addItemButton("✎", () => openEdit(model));
