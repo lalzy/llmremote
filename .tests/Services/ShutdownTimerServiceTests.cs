@@ -6,12 +6,13 @@ using System.Net;
 using Microsoft.Extensions.Time.Testing;
 using LLMRemote.Services;
 using LLMRemote.Tests.Util;
+using LLMRemote.Tests.Factories;
 using LLMRemote.Options;
 using Microsoft.Extensions.Options;
 
 namespace LLMRemote.Tests;
 
-public class ShutdownTimerServiceTests{
+public class ShutdownTimerServiceTests:DatabaseTestBase{
     private readonly Faker _faker = new Faker();
     private readonly DateTimeOffset _now;
     private readonly FakeTimeProvider _timeProvider;
@@ -19,8 +20,9 @@ public class ShutdownTimerServiceTests{
     private readonly LlamaService _llama;
     private readonly FakeProcess _process;
 
-    public ShutdownTimerServiceTests(){
-        _llama = new LlamaService(new FakeProcess(),
+    public ShutdownTimerServiceTests(DatabaseFixture fixture) : base (fixture){
+        _process = new FakeProcess();
+        _llama = new LlamaService(_process,
                                   new OptionsWrapper<Apps>(new Apps {Llama = new LlamaConfig { Path = _faker.System.FilePath(), Port = _faker.Internet.Port(), OtherSettings ="" }}),
                                   new HttpClient(new FakeHttpHandler(HttpStatusCode.OK)));
         _now = _faker.Date.RecentOffset();
@@ -70,11 +72,31 @@ public class ShutdownTimerServiceTests{
 
         Assert.Null(_service.ShutdownAt);
     }
+    
+    [Fact]
+    public void Set_StopsLlamaWhenTimeElapses(){
+        _llama.StartServer(LLMModelFactory.Create(_fixture));
+        var duration = _faker.Random.Int(1, 3600);
+        _service.Set(duration);
+
+        _timeProvider.Advance(TimeSpan.FromSeconds(duration));
+        Assert.Equal(1, _process.StopCount);
+    }
 
     [Fact]
     public void Cancel_ClearShutdownAt(){
         _service.Set(_faker.Random.Int(1, 3600));
         _service.Cancel();
         Assert.Null(_service.ShutdownAt);
+    }
+
+    [Fact]
+    public void Cancel_StopsTimer(){
+        var duration = _faker.Random.Int(1, 3600);
+        _service.Set(duration);
+        _service.Cancel();
+
+        _timeProvider.Advance(TimeSpan.FromSeconds(duration));
+        Assert.Equal(0, _process.StopCount);
     }
 }
