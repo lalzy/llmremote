@@ -28,6 +28,7 @@ public class ManagedProcess : IManagedProcess{
     
     /// <inheritdoc/>
     public void Start(string fileName, string arguments){
+        Stop();
         _process = Process.Start(new ProcessStartInfo(fileName, arguments){
            UseShellExecute = true     
         });

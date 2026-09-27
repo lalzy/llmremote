@@ -243,8 +243,8 @@ const unitSeconds = {Minutes: 60, Hours: 3600};
 
 timerSet.addEventListener("click", async () => {
     const seconds = Math.floor(Number(timerValue.value) * unitSeconds[timerUnit.value]);
-    if (seconds < 300){
-	timerError.textContent = "Minimum is 5 minutes";
+    if (seconds < 60){
+	timerError.textContent = "Minimum is 1 minute";
 	return;
     };
 
