@@ -9,6 +9,7 @@ using LLMRemote.Tests.Util;
 using LLMRemote.Tests.Factories;
 using LLMRemote.Options;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace LLMRemote.Tests;
 
@@ -22,12 +23,19 @@ public class ShutdownTimerServiceTests:DatabaseTestBase{
 
     public ShutdownTimerServiceTests(DatabaseFixture fixture) : base (fixture){
         _process = new FakeProcess();
-        _llama = new LlamaService(_process,
-                                  new OptionsWrapper<Apps>(new Apps {Llama = new LlamaConfig { Path = _faker.System.FilePath(), Port = _faker.Internet.Port(), OtherSettings ="" }}),
-                                  new HttpClient(new FakeHttpHandler(HttpStatusCode.OK)));
+        _llama = new LlamaService(_process, new OptionsWrapper<Apps>(new Apps {Llama = new LlamaConfig {
+                        Path = _faker.System.FilePath(), Port = _faker.Internet.Port(), OtherSettings =""
+                        }}), new HttpClient(new FakeHttpHandler(HttpStatusCode.OK)));
         _now = _faker.Date.RecentOffset();
         _timeProvider = new FakeTimeProvider(_now);
-        _service = new ShutdownTimerService(_timeProvider, _llama);
+
+        // get keyed LLamaService
+        var scopeFactory = new ServiceCollection()
+            .AddKeyedScoped<LlamaService>("llama", (_, _) => _llama)
+            .BuildServiceProvider()
+            .GetRequiredService<IServiceScopeFactory>();
+
+        _service = new ShutdownTimerService(_timeProvider, scopeFactory);
     }
 
     [Fact]

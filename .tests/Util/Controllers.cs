@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Time.Testing;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
 using LLMRemote.Services;
@@ -34,7 +35,9 @@ public static class ControllersUtil{
                 // Block outgoing HTTP
                 services.RemoveAll<HttpClient>();
                     services.AddSingleton(new HttpClient(new FakeHttpHandler(HttpStatusCode.OK)));
-                
+                services.RemoveAll<TimeProvider>();
+                services.AddSingleton<TimeProvider>(new FakeTimeProvider());
+
                 // Replace the keyed process services
                 foreach (var key in new[] { "llama", "comfyui"}){
                     services.RemoveAllKeyed<IManagedProcess>(key);

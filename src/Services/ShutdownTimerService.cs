@@ -3,22 +3,23 @@
 using System;
 using System.Threading;
 using LLMRemote.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace LLMRemote.Services;
 
 public class ShutdownTimerService
 {
-    private readonly LlamaService _llama;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly TimeProvider _timeProvider;
     public DateTimeOffset? ShutdownAt { get; private set; }
     private readonly object _lock = new();
     private ITimer? _timer;
     private object? _token;
 
-    public ShutdownTimerService(TimeProvider timeProvider, LlamaService llama)
+    public ShutdownTimerService(TimeProvider timeProvider, IServiceScopeFactory scopeFactory)
     {
         _timeProvider = timeProvider;
-        _llama = llama;
+        _scopeFactory = scopeFactory;
     }
 
     /// <summary>Cancel shutdown timer</summary>
@@ -38,18 +39,21 @@ public class ShutdownTimerService
             ShutdownAt = _timeProvider.GetUtcNow().AddSeconds(duration);
             _timer?.Dispose();
             var token = new object();
+            _token = token;
             _timer = _timeProvider.CreateTimer(_ => Fire(token), null, TimeSpan.FromSeconds(duration), Timeout.InfiniteTimeSpan);
             
         }
     }
 
     /// <summary>Trigger shutdown of processes</summary>
+    /// <param name="token">Identity of calling timer</param>
     private void Fire(object token)
     {
         lock(_lock){
             if(token != _token) return;
             Clear();
-            _llama.StopServer();
+            using var scope = _scopeFactory.CreateScope();
+            scope.ServiceProvider.GetRequiredKeyedService<LlamaService>("llama").StopServer();
         }
     }
 
