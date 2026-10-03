@@ -15,6 +15,13 @@ public interface IManagedProcess : IDisposable{
     ///<param name="arguments">The arguments to give to the process</param>
     ///<remarks>Assigned to Job which kills process and its children on parent close</remarks>
     void Start(string fileName, string arguments);
+
+    /// <summary>Start a process without opening external</summary>
+    /// <param name="fileName"><inheritdoc cref="Start" path="/param[@name='fileName']"/></param>
+    /// <param name="arguments"><inheritdoc cref="Start" path="/param[@name='arguments']"/></param>
+    /// <param name="onOutput">Called for every line the process writes</param>
+    /// <remarks><inheritdoc cref="Start" path="/remarks"/></remarks>
+    void StartWithOutput(string fileName, string arguments, Action<string> onAction);
     
     ///<summary>Stop process</summary>
     void Stop();
@@ -33,6 +40,25 @@ public class ManagedProcess : IManagedProcess{
            UseShellExecute = true     
         });
         if (_process != null) JobObject.Assign(_process);
+    }
+
+    /// <inheritdoc/>
+    public void StartWithOutput(string fileName, string arguments, Action<string> onOutput){
+        Stop();
+        _process = new Process{
+            StartInfo = new ProcessStartInfo(fileName, arguments){
+                UseShellExecute = false,
+                RedirectStandardOutput = true
+            }
+        };
+
+        _process.OutputDataReceived += (_, e) => {
+            if(e.Data != null) onOutput(e.Data);
+        };
+
+        _process.Start();
+        JobObject.Assign(_process);
+        _process.BeginOutputReadLine();
     }
     
     /// <inheritdoc/>

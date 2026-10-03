@@ -12,6 +12,7 @@ public class FakeProcess : IManagedProcess
     public bool NotRunning { get; private set; } = true;
     public string FileName { get; private set; } = "";
     public string Arguments { get; private set; } = "";
+    public Action<string>? Output { get; private set; }
 
     public void Start(string fileName, string arguments)
     {
@@ -21,6 +22,11 @@ public class FakeProcess : IManagedProcess
         Arguments = arguments;
     }
 
+    public void StartWithOutput(string fileName, string arguments, Action<string> onOutput){
+        Start(fileName, arguments);
+        Output = onOutput;
+    }
+    
     public void Stop()
     {
         StopCount++;
