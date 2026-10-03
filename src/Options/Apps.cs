@@ -6,6 +6,7 @@ public class Apps
 {
     public AppConfig Llama { get; set; } = new();
     public AppConfig ComfyUI { get; set; } = new();
+    public AppConfig Voicebox { get; set; } = new();
 }
 
 
