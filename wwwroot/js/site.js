@@ -289,3 +289,30 @@ comfyButton.addEventListener("click", async () => {
 
 setComfyStatus();
 setInterval(setComfyStatus, checkMS);
+
+// === Nvidia HW Usage ===
+const gpuList = document.getElementById("gpus");
+
+async function setGpuUsage(){
+    try {
+	const res = await fetch("/api/nvidia/usage");
+	const gpus = await res.json();
+
+	gpuList.innerHTML = "";
+for(const [name, usage] of Object.entries(gpus)){
+    const card = document.createElement("div");
+    card.className = "gpu-card";
+    card.innerHTML = `
+	<span class="gpu-name">${name}</span>
+	<div class="gpu-bar"><div style="width:${usage.gpu}%"></div></div>
+	<span class="gpu-stat">${usage.gpu}%</span>
+	<span class="gpu-stat">${usage.memory} MiB / ${usage.memoryTotal} MiB</span>`;
+    gpuList.appendChild(card);
+}
+
+	
+    } catch {}
+}
+
+setGpuUsage();
+setInterval(setGpuUsage, checkMS);

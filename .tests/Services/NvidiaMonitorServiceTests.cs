@@ -25,7 +25,7 @@ public class NvidiaMonitorServiceTests{
     public void Constructor_StartNvidiaSmi(){
         Assert.Equal(1, _process.StartCount);
         Assert.Equal("nvidia-smi", _process.FileName);
-        Assert.Equal("--query-gpu=name,utilization.gpu,memory.used --format=csv,noheader,nounits -l 1", _process.Arguments);
+        Assert.Equal("--query-gpu=name,utilization.gpu,memory.used,memory.total --format=csv,noheader,nounits -l 1", _process.Arguments);
     }
 
     [Theory]
@@ -33,13 +33,18 @@ public class NvidiaMonitorServiceTests{
     [InlineData(2)]
     [InlineData(4)]
     public void GetUsage_GPUData(int count){
-        var gpus = Enumerable.Range(0, count).Select(i => new {
-            Name = $"{_faker.Commerce.ProductName()} {i}",
-            Gpu = _faker.Random.Int(0, 100).ToString(),
-            Memory = _faker.Random.Int(0, 24576).ToString()
+        var gpus = Enumerable.Range(0, count).Select(i =>{
+            var totalMemory = _faker.PickRandom(new[] { 2048, 4096, 8192, 12288, 16384 });
+
+            return new {
+                Name = $"{_faker.Commerce.ProductName()} {i}",
+                Gpu = _faker.Random.Int(0, 100).ToString(),
+                Memory = _faker.Random.Int(0, totalMemory).ToString(),
+                TotalMemory = totalMemory,
+            };
         }).ToList();
 
-        foreach (var g in gpus) _process.Output!($"{g.Name}, {g.Gpu}, {g.Memory}");
+        foreach (var g in gpus) _process.Output!($"{g.Name}, {g.Gpu}, {g.Memory}, {g.TotalMemory}");
 
         var result = _service.GetUsage();
 
@@ -55,8 +60,8 @@ public class NvidiaMonitorServiceTests{
     public void GetUsage_SameGpu_OverwritesValues(){
         var name = _faker.Commerce.ProductName();
 
-        _process.Output!($"{name}, 10, 512");
-        _process.Output!($"{name}, 90, 4096");
+        _process.Output!($"{name}, 10, 512, 2048");
+        _process.Output!($"{name}, 90, 4096, 4096");
 
         var result = _service.GetUsage();
 

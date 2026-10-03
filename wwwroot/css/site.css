@@ -207,3 +207,50 @@ button {
 #modelList li.loading {
     border-color: orange;
 }
+
+#gpus {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 12px 0;
+}
+
+.gpu-card {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-left: 4px solid green;
+    border-radius: 8px;
+    background: var(--card);
+    box-shadow: 0 1px 4px var(--shadow);
+    font-size: 0.9em;
+}
+
+.gpu-name {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.gpu-bar {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.gpu-bar div {
+    height: 100%;
+    background: green;
+    transition: width 0.5s;
+}
+
+.gpu-stat {
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--bg);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}

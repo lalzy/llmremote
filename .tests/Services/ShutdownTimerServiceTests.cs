@@ -93,6 +93,7 @@ public class ShutdownTimerServiceTests:DatabaseTestBase{
 
     [Fact]
     public void Set_ParrallelCallsLaveOnlyOneTimer(){
+        _llama.StartServer(LLMModelFactory.Create(_fixture));
         var duration = _faker.Random.Int(1, 3600);
         var threadCount = Environment.ProcessorCount * 2;
         var barrier = new Barrier(threadCount);
@@ -129,9 +130,12 @@ public class ShutdownTimerServiceTests:DatabaseTestBase{
 
     [Fact]
     public void SetAndCancel_ParallelCallsStayConsistent(){
+        var model = LLMModelFactory.Create(_fixture);
         var duration = _faker.Random.Int(1, 3600);
 
         for (var round = 0; round < 5000; round++){
+            _llama.StartServer(model);
+
             var barrier = new Barrier(2);
             var set = new Thread(() => { barrier.SignalAndWait(); _service.Set(duration); });
             var cancel = new Thread(() => { barrier.SignalAndWait(); _service.Cancel(); });

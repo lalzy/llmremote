@@ -42,10 +42,11 @@ public class NvidiaMonitorControllerTests : IClassFixture<WebApplicationFactory<
     public async Task GetNvidiaUsage_VerifyJson(){
         var name = _faker.Commerce.ProductName();
         var gpu = _faker.Random.Int(0, 100).ToString();
-        var memory = _faker.Random.Int(0, 24576).ToString();
+        var memoryTotal = _faker.PickRandom(new[] { 2048, 4096, 8192, 12288, 16384});
+        var memory = _faker.Random.Int(0, memoryTotal).ToString();
 
         _factory.Services.GetRequiredService<NvidiaMonitorService>();
-        _process.Output!($"{name}, {gpu}, {memory}");
+        _process.Output!($"{name}, {gpu}, {memory}, {memoryTotal}");
 
         var result = await _client.GetFromJsonAsync<Dictionary<string, Dictionary<string, string>>>("/api/nvidia/usage");
 

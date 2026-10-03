@@ -17,7 +17,7 @@ public class NvidiaMonitorService{
     private readonly ConcurrentDictionary<string, Dictionary<string, string>> _gpus = new();
 
     public NvidiaMonitorService([FromKeyedServices("nvidia")] IManagedProcess process){
-        process.StartWithOutput("nvidia-smi", "--query-gpu=name,utilization.gpu,memory.used --format=csv,noheader,nounits -l 1",
+        process.StartWithOutput("nvidia-smi", "--query-gpu=name,utilization.gpu,memory.used,memory.total --format=csv,noheader,nounits -l 1",
         OnOutput);
     }
 
@@ -28,7 +28,8 @@ public class NvidiaMonitorService{
         _gpus[name] = new Dictionary<string, string>
         {
             ["gpu"] = v[1].Trim(),
-            ["memory"] = v[2].Trim()
+            ["memory"] = v[2].Trim(),
+            ["memoryTotal"] = v[3].Trim(),
         };
     }
     
