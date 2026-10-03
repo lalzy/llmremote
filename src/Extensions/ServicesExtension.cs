@@ -19,7 +19,7 @@ public static class ServiceExtension{
             .Where(t => t.IsClass && !t.IsAbstract && t.Namespace == "LLMRemote.Services" && !t.IsNested);
 
         foreach (var type in serviceTypes){
-            if(type == typeof(ShutdownTimerService))
+            if(type == typeof(ShutdownTimerService) || type == typeof(NvidiaMonitorService))
                 services.AddSingleton(type);
             else
                 services.AddScoped(type);
