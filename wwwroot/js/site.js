@@ -316,3 +316,29 @@ for(const [name, usage] of Object.entries(gpus)){
 
 setGpuUsage();
 setInterval(setGpuUsage, checkMS);
+
+// === Voicebox ===
+const voiceboxStatus = document.getElementById("voiceboxstatus");
+const voiceboxButton = document.getElementById("voiceboxButton");
+let voiceboxStarting = false;
+
+async function setVoiceboxStatus(){
+    try {
+	const res = await fetch("/api/voicebox/health");
+	const status = await res.json();
+	if (status.toLowerCase() !== "offline") voiceboxStarting = false;
+	voiceboxStatus.innerHTML = `Voicebox: <span>${voiceboxStarting ? "Starting" : status}</span>`;
+	voiceboxStatus.className = `server-status ${status.toLowerCase()}`;
+	voiceboxButton.textContent = status.toLowerCase() === "offline" && !voiceboxStarting ? "Start" : "Stop";
+    } catch {}
+}
+
+voiceboxButton.addEventListener("click", async () => {
+    const starting = voiceboxButton.textContent === "Start";
+    voiceboxStarting = starting;
+    await fetch(starting ? "/api/voicebox/start" : "/api/voicebox/stop", {method: "POST"});
+    setVoiceboxStatus();
+});
+
+setVoiceboxStatus();
+setInterval(setVoiceboxStatus, checkMS);
