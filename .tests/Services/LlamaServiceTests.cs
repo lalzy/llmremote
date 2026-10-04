@@ -56,6 +56,12 @@ public class LlamaServiceTests : DatabaseTestBase{
     }
 
     [Fact]
+    public void StopServer_StoppingNonExistingDoesNotThrow(){
+        var ex = Record.Exception(() => _service.StopServer());
+        Assert.Null(ex);
+    }
+
+    [Fact]
     public async Task RunningP_ReturnOfflineWhenNotStarted(){
         var result = await _service.RunningP();
         Assert.Equal(ServerState.Offline, result);

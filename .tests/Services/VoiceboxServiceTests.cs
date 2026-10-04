@@ -20,7 +20,7 @@ public class VoiceboxServiceTests{
     
     public VoiceboxServiceTests(){
         _apps = new OptionsWrapper<Apps>(new Apps{
-                Voicebox = new AppConfig {Path = _faker.System.FilePath(), Port = _faker.Internet.Port(), OtherSettings = ""}
+                Voicebox = new AppConfig {Path = _faker.System.FilePath(), Port = _faker.Internet.Port(), OtherSettings = _faker.Lorem.Word()}
         });
 
         _service = CreateService(HttpStatusCode.OK); 
@@ -31,8 +31,15 @@ public class VoiceboxServiceTests{
     public void StartServer_RunsVoicebox(){
         _service.StartServer();
 
+        Assert.Equal(_apps.Value.Voicebox.Path, _process.FileName);
         Assert.Equal(1, _process.StartCount);
         Assert.False(_process.NotRunning);
+    }
+
+    [Fact]
+    public void StartServer_ArgumentsPassed(){
+        _service.StartServer();
+        Assert.Equal(_apps.Value.Voicebox.OtherSettings, _process.Arguments);
     }
 
     [Fact]
@@ -40,6 +47,7 @@ public class VoiceboxServiceTests{
         _service.StartServer();
         Assert.Equal(0, _process.StopCount);
         _service.StartServer();
+        Assert.Equal(2, _process.StartCount);
         Assert.Equal(1, _process.StopCount);
     }
 
@@ -49,6 +57,12 @@ public class VoiceboxServiceTests{
         Assert.True(!_process.NotRunning);
         _service.StopServer();
         Assert.True(_process.NotRunning);
+    }
+    
+    [Fact]
+    public void StopServer_StoppingNonExistingDoesNotThrow(){
+        var ex = Record.Exception(() => _service.StopServer());
+        Assert.Null(ex);
     }
 
     [Fact]
@@ -73,11 +87,40 @@ public class VoiceboxServiceTests{
     }
 
     [Fact]
+    public async Task RunningP_CallsCorrectHealthURL(){
+        var handler = new FakeHttpHandler(HttpStatusCode.OK);
+        var service = new VoiceboxService(_process, _apps, new HttpClient(handler));
+        service.StartServer();
+
+        await service.RunningP();
+
+        Assert.Equal(_apps.Value.Voicebox.Port, handler.LastRequestUri!.Port);
+        Assert.Equal("127.0.0.1", handler.LastRequestUri.Host);
+        Assert.Equal("/health", handler.LastRequestUri.AbsolutePath);
+    }
+
+    [Fact]
     public async Task RunningP_ReturnsOfflineAfterStop(){
         var service = CreateService(HttpStatusCode.OK);
         service.StartServer();
         service.StopServer();
 
         Assert.Equal(ServerState.Offline, (await service.RunningP()));
+    }
+
+    [Fact]
+    public async Task RunningP_ReturnsLoadingHttpRequestException(){
+        var service = new VoiceboxService(_process, _apps, new HttpClient(new RefusedHttpHandler()));
+
+        service.StartServer();
+        Assert.Equal(ServerState.Loading, (await service.RunningP()));
+    }
+
+    [Fact]
+    public async Task RunningP_ReturnsLoadingHangingHttp(){
+        var service = new VoiceboxService(_process, _apps, new HttpClient(new HangingHttpHandler()));
+
+        service.StartServer();
+        Assert.Equal(ServerState.Loading, (await service.RunningP()));
     }
 }

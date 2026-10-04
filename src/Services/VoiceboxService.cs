@@ -28,11 +28,16 @@ public class VoiceboxService([FromKeyedServices("voicebox")] IManagedProcess pro
     
     public async Task<ServerState> RunningP(){
         if(_process.NotRunning) return ServerState.Offline;
-        
-        using var timeout = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(1));
-        var response = await _client.GetAsync($"http://127.0.0.1:{_voiceboxConfig.Port}/health", timeout.Token);
+        try{
+            using var timeout = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(1));
+            var response = await _client.GetAsync($"http://127.0.0.1:{_voiceboxConfig.Port}/health", timeout.Token);
 
-        if(response.StatusCode == HttpStatusCode.OK) return ServerState.Online;
+            if(response.StatusCode == HttpStatusCode.OK) return ServerState.Online;
+        }catch(HttpRequestException){
+            return ServerState.Loading;
+        }catch(TaskCanceledException){
+            return ServerState.Loading;
+        }
         return ServerState.Loading;
     }
 }
