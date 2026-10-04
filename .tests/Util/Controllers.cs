@@ -38,9 +38,10 @@ public static class ControllersUtil{
                 services.AddSingleton<TimeProvider>(new FakeTimeProvider());
 
                 // Replace the keyed process services
-                foreach (var key in new[] { "llama", "comfy"}){
+                foreach (var key in new[] { "llama", "comfy", "voicebox"}){
                     services.RemoveAllKeyed<IManagedProcess>(key);
-                    services.AddKeyedTransient<IManagedProcess>(key, (_, _) => new Mock<IManagedProcess>().Object);
+                    services.AddKeyedSingleton<IManagedProcess>(key, new FakeProcess());
+                    // services.AddKeyedTransient<IManagedProcess>(key, (_, _) => new Mock<IManagedProcess>().Object);
                 }
             });
         });
