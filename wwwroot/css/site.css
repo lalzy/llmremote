@@ -254,3 +254,12 @@ button {
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
 }
+
+#modelList li.working {
+    border-color: green;
+    animation: flash-orange 0.5s step-end infinite;
+}
+
+@keyframes flash-orange {
+    50% { border-color: orange; }
+}

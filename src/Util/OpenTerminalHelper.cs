@@ -4,7 +4,15 @@ namespace LLMRemote.Util;
 
 public static class OpenTerminalHelper
 {
+    /// <summary>Filter out slot log spam</summary>
+    public static string CreateLogFilter(HostOS os){
+        const string slots = "GET /slots";
+        const string idle = "all slots are idle";
 
+        return os == HostOS.Windows
+            ? $" 2>&1 | findstr /V /C:\"{slots}\" /C:\"{idle}\""
+            : $" 2>&1 | grep -v -e '{slots}' -e '{idle}'";
+    }
     ///<summary>Assigned at compile time. Used to allow testing of CreateOSTerminalCommand</summary>
     public const HostOS CurrentOS =
 #if WINDOWS

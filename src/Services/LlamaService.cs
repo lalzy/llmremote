@@ -8,6 +8,8 @@ using LLMRemote.Models;
 using LLMRemote.Util;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace LLMRemote.Services;
 
@@ -17,7 +19,7 @@ public class LlamaService([FromKeyedServices("llama")] IManagedProcess process, 
     private readonly AppConfig _llamaConfig = apps.Value.Llama;
     private readonly HttpClient _client = client;
 
-
+    
     private string CreateLlamaArgument(LLMModel model){
         var arguments = new StringBuilder();
         arguments.Append($"-m \"{model.FilePath}\" ");
@@ -27,7 +29,7 @@ public class LlamaService([FromKeyedServices("llama")] IManagedProcess process, 
         return arguments.ToString();
     }
 
-
+    
     /// <summary>Starts the Llama-server process</summary>
     /// <param name="model">The LLM Model object returned from the database / llmmodel endpoint</param>
     /// <remarks>Opens an external terminal that then runs Llama-server to circumvent it closing on errors </remarks>
@@ -36,7 +38,8 @@ public class LlamaService([FromKeyedServices("llama")] IManagedProcess process, 
         // Only one server instance should run at a time
         if(!_process.NotRunning) _process.Stop();
 
-        var (file, args) = OpenTerminalHelper.CreateOSTerminalCommand(OpenTerminalHelper.CurrentOS, _llamaConfig.Path, CreateLlamaArgument(model));
+        // var (file, args) = OpenTerminalHelper.CreateOSTerminalCommand(OpenTerminalHelper.CurrentOS, _llamaConfig.Path, CreateLlamaArgument(model));
+        var (file, args) = OpenTerminalHelper.CreateOSTerminalCommand(OpenTerminalHelper.CurrentOS, _llamaConfig.Path, CreateLlamaArgument(model) + OpenTerminalHelper.CreateLogFilter(OpenTerminalHelper.CurrentOS));
         _process.Start(file, args);
     }
 
@@ -68,5 +71,17 @@ public class LlamaService([FromKeyedServices("llama")] IManagedProcess process, 
         catch(TaskCanceledException){
             return ServerState.Loading;
         }
+    }
+
+    /// <summary>Check if llama is generating a prompt</summary>
+    /// <returns> true if llama is generating a prompt, false otherwise</returns>
+    public async Task<bool> GeneratingP(){
+        if (await RunningP() != ServerState.Online) return false;
+        
+        var json = await _client.GetStringAsync($"http://localhost:{_llamaConfig.Port}/slots");
+        if (string.IsNullOrWhiteSpace(json)) return false;
+
+        return JsonSerializer.Deserialize<JsonElement[]>(json)!
+            .Any(s => s.GetProperty("is_processing").GetBoolean());
     }
 }

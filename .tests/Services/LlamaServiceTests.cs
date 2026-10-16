@@ -36,7 +36,15 @@ public class LlamaServiceTests : DatabaseTestBase{
         Assert.Equal(1, _process.StartCount);
         Assert.False(_process.NotRunning);
     }
-    
+
+    [Fact]
+    public void StartServer_FiltersSlotLogs(){
+        _service.StartServer(LLMModelFactory.Create(_fixture));
+
+        Assert.Contains("GET /slots", _process.Arguments);
+        Assert.Contains("all slots are idle", _process.Arguments);
+    }
+
     [Fact]
     public void StartServer_RunsOnlyOneProcess(){
         var model = LLMModelFactory.Create(_fixture);
@@ -102,4 +110,60 @@ public class LlamaServiceTests : DatabaseTestBase{
         Assert.Equal(expectedFile, file);
         Assert.Equal(expectedArgs, args);
     }
+
+    [Fact]
+    public async Task GeneratingP_ReturnsTrueWhenASlotIsProcessing(){
+        const string slots = """
+        [
+          { "id": 0, "n_ctx": 8192, "is_processing": false },
+          { "id": 1, "n_ctx": 8192, "is_processing": true  },
+          { "id": 2, "n_ctx": 8192, "is_processing": false },
+          { "id": 3, "n_ctx": 8192, "is_processing": false }
+        ]
+        """;
+
+        var service = new LlamaService(_process, _apps, new HttpClient(new FakeHttpHandler(HttpStatusCode.OK, slots)));
+        service.StartServer(LLMModelFactory.Create(_fixture));
+
+        Assert.True(await service.GeneratingP());
+    }
+
+    [Fact]
+    public async Task GeneratingP_ReturnsFalseWhenNoSlotIsProcessing(){
+        const string slots = """
+        [
+          { "id": 0, "n_ctx": 8192, "is_processing": false },
+          { "id": 1, "n_ctx": 8192, "is_processing": false },
+          { "id": 2, "n_ctx": 8192, "is_processing": false },
+          { "id": 3, "n_ctx": 8192, "is_processing": false }
+        ]
+        """;
+
+        var service = new LlamaService(_process, _apps, new HttpClient(new FakeHttpHandler(HttpStatusCode.OK, slots)));
+        service.StartServer(LLMModelFactory.Create(_fixture));
+
+        Assert.False(await service.GeneratingP());
+    }
+
+    [Fact]
+    public async Task GeneratingP_ReturnsFalseWhenNotStarted(){
+        Assert.False(await _service.GeneratingP());
+    }
+
+    [Fact]
+    public async Task GeneratingP_ReturnsFalseWhenLoading(){
+        var service = CreateService(HttpStatusCode.ServiceUnavailable);
+        service.StartServer(LLMModelFactory.Create(_fixture));
+
+        Assert.False(await service.GeneratingP());
+    }
+
+    [Fact]
+    public async Task GeneratingP_ReturnsFalseWhenNoBody(){
+        var service = CreateService(HttpStatusCode.OK);
+        service.StartServer(LLMModelFactory.Create(_fixture));
+
+        Assert.False(await service.GeneratingP());
+    }
+
 }

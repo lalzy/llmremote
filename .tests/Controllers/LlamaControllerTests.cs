@@ -35,4 +35,10 @@ public class LlamaControllerTests : IClassFixture<WebApplicationFactory<Program>
         var response = await _client.GetAsync("/api/llama/health/");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
+
+    [Fact]
+    public async Task ServerWorking_Ok(){
+        var response = await _client.GetAsync("/api/llama/working");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
 }

@@ -9,10 +9,11 @@ async function setLlamaStatus(){
     llamaStatus.innerHTML = `Llama: <span>${status}</span>`;
     llamaStatus.className = `server-status ${status.toLowerCase()}`;
     switch(status.toLowerCase()){
-    case "online":
-	setItemState("running");
+    case "online": {
+	const working = await (await fetch(`/api/llama/working`)).json();
+	setItemState(working ? "working" : "running");
 	return;
-    case "loading":
+    }case "loading":
 	setItemState("loading");
 	return;
     default:
@@ -32,8 +33,7 @@ let activeId = localStorage.getItem("activeId");
 
 function setItemState(state){
     // Clear old states
-    document.querySelectorAll("#modelList li").forEach(li => li.classList.remove("loading", "running"));
-
+    document.querySelectorAll("#modelList li").forEach(li => li.classList.remove("loading", "running", "working"));
     if (activeId === null || !state) return;
     const item = document.querySelector(`#modelList li[data-id="${activeId}"]`);
     if(item) item.classList.add(state);

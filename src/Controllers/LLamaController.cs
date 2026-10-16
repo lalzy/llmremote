@@ -27,4 +27,9 @@ public class LlamaController(LlamaService service) : ControllerBase{
     public async Task<IActionResult> Health(){
         return Ok(await _service.RunningP());
     }
+
+    [HttpGet("working")]
+    public async Task<IActionResult> Working(){
+        return Ok(await _service.GeneratingP());
+    }
 }

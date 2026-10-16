@@ -33,7 +33,7 @@ public static class ControllersUtil{
                 
                 // Block outgoing HTTP
                 services.RemoveAll<HttpClient>();
-                    services.AddSingleton(new HttpClient(new FakeHttpHandler(HttpStatusCode.OK)));
+                services.AddSingleton(new HttpClient(new FakeHttpHandler(HttpStatusCode.OK)));
                 services.RemoveAll<TimeProvider>();
                 services.AddSingleton<TimeProvider>(new FakeTimeProvider());
 
@@ -41,7 +41,6 @@ public static class ControllersUtil{
                 foreach (var key in new[] { "llama", "comfy", "voicebox"}){
                     services.RemoveAllKeyed<IManagedProcess>(key);
                     services.AddKeyedSingleton<IManagedProcess>(key, new FakeProcess());
-                    // services.AddKeyedTransient<IManagedProcess>(key, (_, _) => new Mock<IManagedProcess>().Object);
                 }
             });
         });

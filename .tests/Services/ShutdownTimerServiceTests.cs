@@ -30,9 +30,14 @@ public class ShutdownTimerServiceTests:DatabaseTestBase{
         _timeProvider = new FakeTimeProvider(_now);
 
         // get keyed LLamaService
-        var scopeFactory = new ServiceCollection()
+        var services = new ServiceCollection()
             .AddScoped<LlamaService>(_ => _llama)
-            .BuildServiceProvider()
+            .AddKeyedSingleton<IManagedProcess>("llama", _process);
+
+        foreach (var key in new[] { "comfy", "voicebox" })
+            services.AddKeyedSingleton<IManagedProcess>(key, new FakeProcess());
+
+        var scopeFactory = services.BuildServiceProvider()
             .GetRequiredService<IServiceScopeFactory>();
 
         _service = new ShutdownTimerService(_timeProvider, scopeFactory);
