@@ -23,6 +23,9 @@ namespace llmremote.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Arguments")
+                        .HasColumnType("TEXT");
+
                     b.Property<int?>("Context")
                         .HasColumnType("INTEGER");
 

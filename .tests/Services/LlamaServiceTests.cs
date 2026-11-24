@@ -27,6 +27,7 @@ public class LlamaServiceTests : DatabaseTestBase{
     }
 
     private LlamaService CreateService(HttpStatusCode code) => new LlamaService(_process, _apps, new HttpClient(new FakeHttpHandler(code)));
+    private LlamaService CreateService(FakeHttpHandler handler) => new LlamaService(_process, _apps, new HttpClient(handler));
 
     [Fact]
     public void StartServer_RunsLLamaServer(){
@@ -52,6 +53,13 @@ public class LlamaServiceTests : DatabaseTestBase{
         Assert.Equal(0, _process.StopCount);
         _service.StartServer(model);
         Assert.Equal(1, _process.StopCount);
+    }
+
+    [Fact]
+    public void StartServer_IncludesArguments(){
+        var model = LLMModelFactory.Create(_fixture);
+        _service.StartServer(model);
+        Assert.Contains(model.Arguments!, _process.Arguments);
     }
 
     [Fact]
@@ -100,6 +108,19 @@ public class LlamaServiceTests : DatabaseTestBase{
         Assert.Equal(ServerState.Offline, (await service.RunningP()));
     }
     
+    [Fact]
+    public async Task RunningP_CorrectPortRunning(){
+        var handler = new FakeHttpHandler(HttpStatusCode.OK);
+        var service = CreateService(handler);
+        var port = _faker.Internet.Port();
+        var model = LLMModelFactory.Create(_fixture, port);
+        
+        service.StartServer(model);
+        await service.RunningP();
+        
+        Assert.Equal(port, handler.LastRequestUri!.Port);
+    }
+
     [Theory]
     [InlineData(HostOS.Windows, "cmd.exe", "/k \"\"/llama\" -m x\"")]
     [InlineData(HostOS.Linux,   "bash",    "-c \"'/llama' -m x; exec bash\"")]
@@ -166,4 +187,16 @@ public class LlamaServiceTests : DatabaseTestBase{
         Assert.False(await service.GeneratingP());
     }
 
+    [Fact]
+    public async Task GeneratingP_CorrectPortRunning(){
+        var handler = new FakeHttpHandler(HttpStatusCode.OK);
+        var service = CreateService(handler);
+        var port = _faker.Internet.Port();
+        var model = LLMModelFactory.Create(_fixture, port);
+        
+        service.StartServer(model);
+        await service.GeneratingP();
+        
+        Assert.Equal(port, handler.LastRequestUri!.Port);
+    }
 }

@@ -8,6 +8,7 @@ public class LLMModel{
     public string Name { get; set; } = "";
     public string FilePath { get; set; } = "";
     public int? Context { get; set; }
+    public string? Arguments {get; set;}
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
@@ -21,4 +22,6 @@ public class LLMModelRequest{
     
     [Range(1, int.MaxValue)]
     public int? Context {get; set;}
+
+    public string? Arguments {get; set;}
 }

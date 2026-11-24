@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace LLMRemote.Services;
 
@@ -18,7 +19,14 @@ public class LlamaService([FromKeyedServices("llama")] IManagedProcess process, 
     private readonly IManagedProcess _process = process;
     private readonly AppConfig _llamaConfig = apps.Value.Llama;
     private readonly HttpClient _client = client;
+    private int _activePort = apps.Value.Llama.Port;
 
+    private int? GetPort(string? arguments){
+        if(arguments == null) return null;
+        if(int.TryParse( Regex.Match(arguments, @"(?<=--port[\s=]+)\d+", RegexOptions.RightToLeft).Value, out var port)){
+            return port;
+        }return null;
+    }
     
     private string CreateLlamaArgument(LLMModel model){
         var arguments = new StringBuilder();
@@ -26,6 +34,10 @@ public class LlamaService([FromKeyedServices("llama")] IManagedProcess process, 
         arguments.Append($"--ctx-size {model.Context} ");
         arguments.Append($"--port {_llamaConfig.Port} ");
         arguments.Append(_llamaConfig.OtherSettings);
+        _activePort = GetPort(model.Arguments) ?? _llamaConfig.Port;
+        
+        // Overrides any default arguments
+        arguments.Append($" {model.Arguments} ");
         return arguments.ToString();
     }
 
@@ -38,7 +50,6 @@ public class LlamaService([FromKeyedServices("llama")] IManagedProcess process, 
         // Only one server instance should run at a time
         if(!_process.NotRunning) _process.Stop();
 
-        // var (file, args) = OpenTerminalHelper.CreateOSTerminalCommand(OpenTerminalHelper.CurrentOS, _llamaConfig.Path, CreateLlamaArgument(model));
         var (file, args) = OpenTerminalHelper.CreateOSTerminalCommand(OpenTerminalHelper.CurrentOS, _llamaConfig.Path, CreateLlamaArgument(model) + OpenTerminalHelper.CreateLogFilter(OpenTerminalHelper.CurrentOS));
         _process.Start(file, args);
     }
@@ -60,7 +71,7 @@ public class LlamaService([FromKeyedServices("llama")] IManagedProcess process, 
 
         try{
             using var timeout = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(1));
-            var response = await _client.GetAsync($"http://127.0.0.1:{_llamaConfig.Port}/health", timeout.Token);
+            var response = await _client.GetAsync($"http://127.0.0.1:{_activePort}/health", timeout.Token);
 
             if(response.StatusCode == HttpStatusCode.OK) return ServerState.Online;
             return ServerState.Loading;
@@ -78,7 +89,7 @@ public class LlamaService([FromKeyedServices("llama")] IManagedProcess process, 
     public async Task<bool> GeneratingP(){
         if (await RunningP() != ServerState.Online) return false;
         
-        var json = await _client.GetStringAsync($"http://localhost:{_llamaConfig.Port}/slots");
+        var json = await _client.GetStringAsync($"http://localhost:{_activePort}/slots");
         if (string.IsNullOrWhiteSpace(json)) return false;
 
         return JsonSerializer.Deserialize<JsonElement[]>(json)!

@@ -12,6 +12,8 @@ public static class ServiceExtension{
     ///<remarks>
     /// Classes registered as themselves and not their interfaces
     /// ShutdownTimerService is registerd as singleton
+    /// LLamaService is registered as a singleton
+    /// NvidiaMonitorservice is registered as a singleton
     ///</remarks>
     public static void AddServices(this IServiceCollection services){
         var serviceTypes = Assembly.GetExecutingAssembly()
@@ -19,7 +21,7 @@ public static class ServiceExtension{
             .Where(t => t.IsClass && !t.IsAbstract && t.Namespace == "LLMRemote.Services" && !t.IsNested);
 
         foreach (var type in serviceTypes){
-            if(type == typeof(ShutdownTimerService) || type == typeof(NvidiaMonitorService))
+            if(type == typeof(ShutdownTimerService) || type == typeof(LlamaService) || type == typeof(NvidiaMonitorService))
                 services.AddSingleton(type);
             else
                 services.AddScoped(type);

@@ -143,6 +143,7 @@ function openEdit(model){
     document.getElementById("nameInput").value = model.name;
     document.getElementById("filePathInput").value = model.filePath;
     document.getElementById("contextInput").value = model.context ?? "";
+    document.getElementById("argumentInput").value = model.arguments ?? "";
     modalDialog.showModal();
 }
 
@@ -188,6 +189,7 @@ modelForm.addEventListener("submit", async (event) => {
 	Name: document.getElementById("nameInput").value,
 	FilePath: document.getElementById("filePathInput").value,
 	Context: document.getElementById("contextInput").value || null,
+	Arguments: document.getElementById("argumentInput").value || null,
     };
     
     const url = editingId === null ? "/api/llmmodel/add" : `/api/llmmodel/${editingId}`;
