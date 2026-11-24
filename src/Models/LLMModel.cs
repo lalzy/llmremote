@@ -11,6 +11,8 @@ public class LLMModel{
     public string? Arguments {get; set;}
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public bool IsFavorite {get; set;} = false;
+    public string? Category {get;set;}
 }
 
 public class LLMModelRequest{
@@ -24,4 +26,6 @@ public class LLMModelRequest{
     public int? Context {get; set;}
 
     public string? Arguments {get; set;}
+    public string? Category {get; set;}
+    public bool? IsFavorite{get;set;}
 }

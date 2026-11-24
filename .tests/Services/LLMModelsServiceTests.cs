@@ -10,6 +10,7 @@ using LLMRemote.Tests.Util;
 using LLMRemote.Services;
 using LLMRemote.Models;
 using LLMRemote.Tests.Factories;
+using LLMRemote.Util;
 
 namespace LLMRemote.Tests;
 
@@ -129,6 +130,7 @@ public class LLMModelsServiceTests : DatabaseTestBase{
     [InlineData(LLMModelsService.OrderBy.Name)]
     [InlineData(LLMModelsService.OrderBy.Created)]
     [InlineData(LLMModelsService.OrderBy.Updated)]
+    [InlineData(LLMModelsService.OrderBy.IsFavorite)]
     public void GetAll_OrderedCorrectly(LLMModelsService.OrderBy orderBy){
         const int TOTAL = 100;
         var models = Enumerable.Range(0, TOTAL).Select(_ => LLMModelFactory.Create(_fixture.CreateContext())).ToList();
@@ -139,6 +141,7 @@ public class LLMModelsServiceTests : DatabaseTestBase{
             LLMModelsService.OrderBy.Name    => m => m.Name,
             LLMModelsService.OrderBy.Created => m => m.CreatedAt,
             LLMModelsService.OrderBy.Updated => m => m.UpdatedAt,
+            LLMModelsService.OrderBy.IsFavorite => m => m.IsFavorite,
             _ => throw new ArgumentOutOfRangeException(nameof(orderBy))
         };
 
@@ -146,13 +149,11 @@ public class LLMModelsServiceTests : DatabaseTestBase{
         IComparer<object> comparer = orderBy == LLMModelsService.OrderBy.Name
             ? Comparer<object>.Create((a, b) => StringComparer.OrdinalIgnoreCase.Compare((string)a, (string)b))
             : Comparer<object>.Default;
-        
-        var expected = models
-            .OrderBy(key, comparer)
-            .ThenBy(m => m.ID)
-            .Select(m => m.ID);
+        var expected = orderBy == LLMModelsService.OrderBy.IsFavorite
+            ? models.OrderByDescending(key, comparer).ThenBy(m => m.Name)
+            : models.OrderBy(key, comparer);
 
-        Assert.Equal(expected, fetched.Select(m => m.ID));
+        Assert.Equal(expected.ThenBy(m => m.ID).Select(m => m.ID), fetched.Select(m => m.ID));
     }
 
     [Fact]
@@ -165,13 +166,7 @@ public class LLMModelsServiceTests : DatabaseTestBase{
         Assert.Equivalent(request, fetched);
     }
 
-    private LLMModelRequest CreateRequestFromModel(LLMModel model){
-        return new LLMModelRequest{
-            Name = model.Name,
-            FilePath = model.FilePath,
-            Context = model.Context,
-        };
-    }
+    private LLMModelRequest CreateRequestFromModel(LLMModel model) => model.ConvertModelToDTO<LLMModelRequest>();
 
     [Theory]
     [InlineData(nameof(LLMModelRequest.Name))]

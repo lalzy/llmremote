@@ -26,6 +26,9 @@ namespace llmremote.Migrations
                     b.Property<string>("Arguments")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Category")
+                        .HasColumnType("TEXT");
+
                     b.Property<int?>("Context")
                         .HasColumnType("INTEGER");
 
@@ -35,6 +38,9 @@ namespace llmremote.Migrations
                     b.Property<string>("FilePath")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsFavorite")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
                         .IsRequired()

@@ -42,6 +42,8 @@
 		<option value="Updated">Updated</option>
 	    </select>
 	</div>
+
+	<button id="addCategory" type="button">📁+</button>
 	
 	<!-- Models -->
 	<ul id="modelList"></ul>
@@ -86,5 +88,18 @@
 	    <button type="button" id="confirm-button" class="danger-button">Confirm</button>
 	</div>
     </dialog>
+
+    <!-- Add to folder modal -->
+    <dialog id="folderDialog">
+	<form id="folderForm">
+	    <h2>Add to <span id="folderDialogName"></span></h2>
+	    <select id="folderModelSelect"></select>
+	    <div class="actions">
+		<button type="button" class="cancel-button">Cancel</button>
+		<button type="submit">Add</button>
+	    </div>
+	</form>
+    </dialog>
+
 </body>
 <script src="~/js/site.js" asp-append-version="true"></script>

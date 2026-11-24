@@ -34,7 +34,7 @@ public class LLMModelsService(AppDbContext db){
 
     ///<summary>Order options</summary>
     public enum OrderBy{
-        Name, Created, Updated, ID
+        Name, Created, Updated, ID, IsFavorite
     }
     
     
@@ -52,6 +52,7 @@ public class LLMModelsService(AppDbContext db){
             OrderBy.Name => request.OrderBy(m => EF.Functions.Collate(m.Name, "NOCASE")).ThenBy(m => m.ID),
             OrderBy.Created => request.OrderBy(m => m.CreatedAt).ThenBy(m => m.ID),
             OrderBy.Updated => request.OrderBy(m => m.UpdatedAt).ThenBy(m => m.ID),
+            OrderBy.IsFavorite => request.OrderByDescending(m => m.IsFavorite).ThenBy(m => EF.Functions.Collate(m.Name, "NOCASE")).ThenBy(m => m.ID)
         };
 
         return request.Skip((page - 1) * count).Take(count).ToList();
